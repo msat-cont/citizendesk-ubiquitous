@@ -9,9 +9,6 @@ bml_save = Blueprint('bml_save', __name__)
 
 @bml_take.route('/bml_feeds/', methods=['GET'])
 def take_bml():
-    import sys
-    sys.stderr.write(str(request.form) + '\n\n')
-    sys.stderr.write(str(dir(request)) + '\n\n')
 
     mongo = mongo_dbs[minicd_inner]
 
@@ -52,9 +49,6 @@ def take_bml():
 
 @bml_save.route('/bml_feeds/', methods=['POST'])
 def save_bml():
-    import sys
-    sys.stderr.write(str(request.form) + '\n\n')
-    sys.stderr.write(str(dir(request)) + '\n\n')
 
     mongo = mongo_dbs[minicd_inner]
 
