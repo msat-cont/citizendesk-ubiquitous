@@ -1,5 +1,32 @@
 <html>
-<body>
-<a href="javascript:(function(){if (!window.cd_is_initialized) {window.cd_feed_name='simple'; window.cd_feed_url='http://localhost:12345/bml_feeds/'; document.body.appendChild(document.createElement('script')).src='http://localhost:8000/lets/mini_cd.js';}})();">Snippets: simple feed</a>
+<head>
+<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" /></script>
+<script type="text/javascript" language="JavaScript">
+window.update_link = function() {
+    var cur_name = $('#name').val();
+
+    if (0 == cur_name.length) {
+        $('#book').hide();
+        return;
+    }
+
+    var bml_link = "javascript:(function(){if (!window.cd_is_initialized) {window.cd_feed_name='simple'; window.cd_user_name='";
+    bml_link += cur_name;
+    bml_link += "'; window.cd_feed_url='http://localhost:12345/bml_feeds/'; document.body.appendChild(document.createElement('script')).src='http://localhost:8000/lets/mini_cd.js';}})();";
+
+    $('#book').attr('href', bml_link);
+    $('#book').show();
+
+};
+</script>
+</head>
+<body onLoad="window.update_link();">
+Fill in your user name:
+<br />
+<input id="name" type="text" size="25" onChange="window.update_link();" onKeyup="window.update_link();"></input>
+<br />
+<br />
+<a id="book" style="display:none;" href="#" onClick="alert('save the link as bookmarklet'); return false;">Snippets: simple feed</a>
+
 </body>
 </html>

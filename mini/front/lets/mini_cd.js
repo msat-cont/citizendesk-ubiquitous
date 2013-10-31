@@ -110,7 +110,8 @@
 
         var params = {
             'selected': '' + get_sel_text(),
-            'reference': '' + window.cd_reference_id,
+            'user': '' + window.cd_user_name,
+            'session': '' + window.cd_session_id,
             'provider': '' + window.location.href
         };
 
@@ -145,7 +146,7 @@
         var form = document.createElement('form');
         form.setAttribute('id', 'mini_cd_open');
         form.setAttribute('method', 'get');
-        form.setAttribute('action', base_url + '?ref=' + window.cd_reference_id);
+        form.setAttribute('action', base_url + '?ref=' + window.cd_session_id);
         form.setAttribute('target', '_blank');
 
         var submitField = document.createElement('input');
@@ -159,7 +160,7 @@
         $(form).css('z-index', '10000');
 
         $(form).on('submit', function(ev) {
-            var commit_win = window.open(base_url + '?selected=' + window.cd_reference_id, 'commit_win');
+            var commit_win = window.open(base_url + '?user=' + window.cd_user_name, 'commit_win');
             window.commit_win_open = true;
             return false;
         });
@@ -202,7 +203,7 @@
     function setup_bookmarklet() {
         (window.cd_bookmarklet = function() {
             if (!window.cd_is_initialized) {
-                window.cd_reference_id = randomString(32, '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ');
+                window.cd_session_id = randomString(32, '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ');
                 make_form(window.cd_feed_url);
                 prepare_open(window.cd_feed_url);
                 set_search_plugin();

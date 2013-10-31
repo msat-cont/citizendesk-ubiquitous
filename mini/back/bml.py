@@ -28,7 +28,7 @@ def take_bml():
         return (tag_string, 200, {'Content-Type': 'application/javascript'})
 
     got_ref = None
-    ref_param = 'selected'
+    ref_param = 'user'
     if ref_param in request.args:
         got_ref = str(request.args[ref_param])
 
@@ -39,7 +39,7 @@ def take_bml():
     if '*' == got_ref:
         cursor = mongo.db.snippets.find()
     else:
-        cursor = mongo.db.snippets.find({'reference': got_ref})
+        cursor = mongo.db.snippets.find({'user': got_ref})
     for entry in cursor:
         entry['_id'] = str(entry['_id'])
         entry['created'] = entry['created'].isoformat() if not None else None
@@ -54,7 +54,8 @@ def save_bml():
 
     snippet = {}
     snippet['selected'] = None;
-    snippet['reference'] = None;
+    snippet['user'] = None;
+    snippet['session'] = None;
     snippet['provider'] = None;
     snippet['created'] = datetime.datetime.utcnow();
 
