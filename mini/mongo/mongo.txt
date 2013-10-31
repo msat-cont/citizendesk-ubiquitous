@@ -1,0 +1,6 @@
+# the minicd db is used for data storage, with tags for search terms, and snippets for texts.
+
+$ mongo
+> use minicd
+> db.tags.save({'feed':'simple', 'tags': ['corrupt', 'issue', 'transparen', 'tunnel', 'bribe']})
+
