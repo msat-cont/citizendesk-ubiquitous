@@ -1,18 +1,54 @@
 <html>
 <head>
 <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" /></script>
+<!--script type="text/javascript" src="jquery.min.js" /></script-->
 <script type="text/javascript" language="JavaScript">
 window.update_link = function() {
+    function endsWith(str, suffix) {
+        return str.indexOf(suffix, str.length - suffix.length) !== -1;
+    };
+
     var cur_name = $('#name').val();
+
+    var cur_data_url = $('#data_url').val();
+    var cur_data_url_ssl = $('#data_url_ssl').val();
+    var cur_js_url = $('#js_url').val();
+    var cur_js_url_ssl = $('#js_url_ssl').val();
 
     if (0 == cur_name.length) {
         $('#book').hide();
         return;
     }
 
+    if (0 == cur_data_url.length) {
+        $('#book').hide();
+        return;
+    }
+    if (0 == cur_data_url_ssl.length) {
+        $('#book').hide();
+        return;
+    }
+    if (0 == cur_js_url.length) {
+        $('#book').hide();
+        return;
+    }
+    if (0 == cur_js_url_ssl.length) {
+        $('#book').hide();
+        return;
+    }
+
+    if (!endsWith(cur_js_url, '/')) {
+        cur_js_url += '/';
+    }
+    if (!endsWith(cur_js_url_ssl, '/')) {
+        cur_js_url_ssl += '/';
+    }
+
     var bml_link = "javascript:(function(){if (!window.cd_is_initialized) {window.cd_feed_name='simple'; window.cd_user_name='";
-    bml_link += cur_name;
-    bml_link += "'; window.cd_feed_url='http://localhost:12345/bml_feeds/'; document.body.appendChild(document.createElement('script')).src='http://localhost:8000/lets/mini_cd.js';}})();";
+    bml_link += cur_name + "'; ";
+    bml_link += "window.cd_feed_url='" + cur_data_url + "'; if ('https:' == document.location.protocol) {window.cd_feed_url = '" + cur_data_url_ssl + "'}; ";
+    bml_link += "var js_url = '" + cur_js_url + "'; if ('https:' == document.location.protocol) {js_url = '" + cur_js_url_ssl + "'}; ";
+    bml_link += "document.body.appendChild(document.createElement('script')).src=js_url+'mini_cd.js';} else {window.cd_show_switch();}})();";
 
     $('#book').attr('href', bml_link);
     $('#book').show();
@@ -27,6 +63,15 @@ Fill in your user name:
 <br />
 <br />
 <a id="book" style="display:none;" href="#" onClick="alert('save the link as bookmarklet'); return false;">Snippets: simple feed</a>
-
+<br />
+<br />
+<br />
+<input id="data_url" title="data url" type="text" size="40" onChange="window.update_link();" onKeyup="window.update_link();" value="http://localhost/cd/data/bml_feeds/"></input>
+<br />
+<input id="data_url_ssl" title="data url / ssl" type="text" size="40" onChange="window.update_link();" onKeyup="window.update_link();" value="https://localhost/cd/data/bml_feeds/"></input>
+<br />
+<input id="js_url" title="JS url" type="text" size="40" onChange="window.update_link();" onKeyup="window.update_link();" value="http://localhost/cd/static/lets/"></input>
+<br />
+<input id="js_url_ssl" title="JS url / ssl" type="text" size="40" onChange="window.update_link();" onKeyup="window.update_link();" value="https://localhost/cd/static/lets/"></input>
 </body>
 </html>

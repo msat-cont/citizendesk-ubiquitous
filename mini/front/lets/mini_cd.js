@@ -1,10 +1,42 @@
 (function(){
 
+    window.mini_cd_display = true;
+    window.cd_show_switch = function() {
+        window.mini_cd_display = !window.mini_cd_display;
+
+        if (window.mini_cd_display) {
+            $('#mini_cd_page_session').show();
+            $('#mini_cd_find_terms').show();
+        }
+        else {
+            $('#mini_cd_page_session').hide();
+            $('#mini_cd_find_terms').hide();
+        }
+    };
+
+    var button_css = {
+        'padding': '1px',
+        'box-shadow': '1px 1px 1px 1px #ccc',
+        'background-color': 'rgb(220, 220, 240)',
+        'color': 'rgb(0, 0, 0)',
+        'border': '1px solid rgb(0, 0, 0)',
+        'border-radius': '5px',
+        'margin': '5px',
+        'font-size': '17px',
+        'line-height': '1',
+        'text-align': 'center',
+        'font-family': 'Helvetica,Arial,sans-serif',
+        'text-decoration': 'none',
+        'height': '28px',
+        'cursor': 'pointer',
+        '-moz-box-sizing': 'padding-box'
+    };
+
     function randomString(length, chars) {
         var result = '';
         for (var i = length; i > 0; --i) result += chars[Math.round(Math.random() * (chars.length - 1))];
         return result;
-    }
+    };
 
     function start_loading() {
         var v = '1.7.1';
@@ -38,20 +70,22 @@
     };
 
     function set_search_plugin() {
-        // this jQuery highlighting addon is taken out of
+        // this jQuery highlighting addon is based on
         // http://johannburkard.de/resources/Johann/jquery.highlight-4.js
 
         jQuery.fn.highlight = function(pat) {
             function innerHighlight(node, pat) {
                 var skip = 0;
                 if (node.nodeType == 3) {
-                    var pos = node.data.toUpperCase().indexOf(pat);
-                    if (pos >= 0) {
+                    var pat_re = new RegExp(pat, 'i');
+                    var re_res = node.data.match(pat_re);
+                    if (re_res && ('index' in re_res) && (re_res['index'] >= 0)) {
                         var spannode = document.createElement('span');
-                        spannode.className = 'highlight';
+                        spannode.className = 'cd_highlight';
                         $(spannode).css('background-color', 'yellow');
-                        var middlebit = node.splitText(pos);
-                        var endbit = middlebit.splitText(pat.length);
+                        $(spannode).css('color', 'black');
+                        var middlebit = node.splitText(re_res['index']);
+                        var endbit = middlebit.splitText(re_res[0].length);
                         var middleclone = middlebit.cloneNode(true);
                         spannode.appendChild(middleclone);
                         middlebit.parentNode.replaceChild(spannode, middlebit);
@@ -66,12 +100,12 @@
                 return skip;
             }
             return this.length && pat && pat.length ? this.each(function() {
-                innerHighlight(this, pat.toUpperCase());
+                innerHighlight(this, pat);
             }) : this;
         };
 
         jQuery.fn.removeHighlight = function() {
-            return this.find("span.highlight").each(function() {
+            return this.find("span.cd_highlight").each(function() {
                 this.parentNode.firstChild.nodeName;
                 with (this.parentNode) {
                     replaceChild(this.firstChild, this);
@@ -140,7 +174,6 @@
         window.mini_cd_iframe_status = 0;
         $(iframe).on('load', function(ev) {
             window.mini_cd_iframe_status += 1;
-            // for Chromium under Linux
             if (navigator.userAgent.toLowerCase().indexOf('webkit') > -1) {
                 if (3 < window.mini_cd_iframe_status) {
                     if (1 == (window.mini_cd_iframe_status % 2)) {
@@ -149,7 +182,6 @@
                     }
                 }
             }
-            // for Firefox under Linux
             if (2 == window.mini_cd_iframe_status) {
                 window.history.back();
             }
@@ -162,11 +194,19 @@
         document.body.appendChild(form);
 
         $('body').not('img').on('contextmenu', function(e) {
+            if (!window.mini_cd_display) {
+                return true;
+            }
+
             var cur_snippet = '' + get_sel_text();
             if ('' == cur_snippet) {
                 return true;
             }
             $('#mini_cd_form').find('input[name="text_snippet"]').val('' + get_sel_text());
+
+            $('#mini_cd_form').find('input[name="image_png"]').val('');
+            $('#mini_cd_form').find('input[name="image_url"]').val('');
+            $('#mini_cd_form').find('input[name="image_title"]').val('');
 
             var menu_html = '<div style="cursor:pointer" onClick="window.mini_cd_save_text_snippet(); return false;">Save text snippet</div>';
 
@@ -204,18 +244,24 @@
         form.setAttribute('action', base_url + '?ref=' + window.cd_session_id);
         form.setAttribute('target', '_blank');
 
-        var submitField = document.createElement('input');
-        submitField.setAttribute('id', 'mini_cd_page_session');
-        submitField.setAttribute('type', 'submit');
-        submitField.setAttribute('value', 'page session');
-        form.appendChild(submitField);
+        var sessionButton = document.createElement('input');
+        sessionButton.setAttribute('id', 'mini_cd_page_session');
+        sessionButton.setAttribute('type', 'submit');
+        sessionButton.setAttribute('value', 'page session');
 
-        $(submitField).css('width', '120px');
+        $(form).css('display', 'none');
 
-        $(form).css('position', 'fixed');
-        $(form).css('top', '10px');
-        $(form).css('left', '10px');
-        $(form).css('z-index', '10000');
+        $(sessionButton).css('width', '125px');
+        $(sessionButton).css('position', 'fixed');
+        $(sessionButton).css('top', '10px');
+        $(sessionButton).css('left', '10px');
+        $(sessionButton).css('z-index', '10000');
+
+        $(sessionButton).css(button_css);
+
+        $(sessionButton).on('click', function(ev) {
+            $(form).submit();
+        });
 
         $(form).on('submit', function(ev) {
             var commit_win = window.open(base_url + '?session=' + window.cd_session_id, 'commit_win');
@@ -224,30 +270,51 @@
         });
 
         document.body.appendChild(form);
+        document.body.appendChild(sessionButton);
     };
 
     function prepare_search() {
+        var serach_label_idx = 0;
+        var serach_labels = ['find terms', 'hide terms'];
+        var search_make = true;
+
         var form = document.createElement('form');
         form.setAttribute('id', 'mini_cd_search');
         form.setAttribute('method', 'get');
         form.setAttribute('target', '_blank');
 
-        var submitField = document.createElement('input');
-        submitField.setAttribute('id', 'mini_cd_find_terms');
-        submitField.setAttribute('type', 'submit');
-        submitField.setAttribute('value', 'find terms');
-        form.appendChild(submitField);
+        var searchButton = document.createElement('input');
+        searchButton.setAttribute('id', 'mini_cd_find_terms');
+        searchButton.setAttribute('type', 'submit');
+        searchButton.setAttribute('value', serach_labels[serach_label_idx]);
 
-        $(submitField).css('width', '120px');
+        $(searchButton).css('width', '125px');
 
-        $(form).css('position', 'fixed');
-        $(form).css('top', '40px');
-        $(form).css('left', '10px');
-        $(form).css('z-index', '10000');
+        $(searchButton).css(button_css);
+
+        $(form).css('display', 'none');
+
+        $(searchButton).css('position', 'fixed');
+        $(searchButton).css('top', '41px');
+        $(searchButton).css('left', '10px');
+        $(searchButton).css('z-index', '10000');
+
+        $(searchButton).css(button_css);
+
+        $(searchButton).on('click', function(ev) {
+            $(form).submit();
+            serach_label_idx = 1 - serach_label_idx;
+            searchButton.setAttribute('value', serach_labels[serach_label_idx]);
+            search_make = !search_make;
+        });
 
         $(form).on('submit', function(ev) {
             var terms = window.cd_terms;
             $(document.body).removeHighlight();
+            if (!search_make) {
+                return false;
+            }
+
             for (ind=(terms.length-1); ind >= 0; ind--) {
                 $(document.body).highlight(terms[ind]);
             }
@@ -255,9 +322,11 @@
         });
 
         document.body.appendChild(form);
+        document.body.appendChild(searchButton);
     };
 
     function mini_cd_save_image_url_inner(img_url, img_title) {
+        $('#mini_cd_form').find('input[name="image_png"]').val('');
         $('#mini_cd_form').find('input[name="image_url"]').val('' + img_url);
         $('#mini_cd_form').find('input[name="image_title"]').val('' + img_title);
         $('#mini_cd_form').submit();
@@ -289,6 +358,10 @@
         $(menu).html('<div>&nbsp;</div>');
 
         $('img').bind('contextmenu', function(e) {
+            if (!window.mini_cd_display) {
+                return true;
+            }
+
             $('#mini_cd_form').find('input[name="text_snippet"]').val('' + get_sel_text());
 
             var event_img = e.currentTarget;
