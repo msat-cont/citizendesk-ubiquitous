@@ -3,12 +3,13 @@
 <!--script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" /></script-->
 <script type="text/javascript" src="jquery.min.js" /></script>
 <script type="text/javascript" language="JavaScript">
-window.update_link = function() {
+window.update_link = function(silent) {
     function endsWith(str, suffix) {
         return str.indexOf(suffix, str.length - suffix.length) !== -1;
     };
 
-    var cur_name = $('#name').val();
+    var cur_name = $('#user_name').val();
+    var cur_feed = $('#feed_name').val();
 
     var cur_data_url = $('#data_url').val();
     var cur_data_url_ssl = $('#data_url_ssl').val();
@@ -17,34 +18,27 @@ window.update_link = function() {
     var cur_jquery_url = $('#jquery_url').val();
     var cur_jquery_url_ssl = $('#jquery_url_ssl').val();
 
-    if (0 == cur_name.length) {
-        $('#book').hide();
-        return;
-    }
+    var in_vals = [cur_name, cur_feed, cur_data_url, cur_data_url_ssl, cur_js_url, cur_js_url_ssl, cur_jquery_url, cur_jquery_url_ssl];
+    var in_vals_count = in_vals.length;
+    for (var ind=0; ind<in_vals_count; ind++) {
+        var cur_val = in_vals[ind];
 
-    if (0 == cur_data_url.length) {
-        $('#book').hide();
-        return;
-    }
-    if (0 == cur_data_url_ssl.length) {
-        $('#book').hide();
-        return;
-    }
-    if (0 == cur_js_url.length) {
-        $('#book').hide();
-        return;
-    }
-    if (0 == cur_js_url_ssl.length) {
-        $('#book').hide();
-        return;
-    }
-    if (0 == cur_jquery_url.length) {
-        $('#book').hide();
-        return;
-    }
-    if (0 == cur_jquery_url_ssl.length) {
-        $('#book').hide();
-        return;
+        if (0 == cur_val.length) {
+            $('#book').hide();
+            return;
+        }
+        var forbidden = ['\\', '\'', '"', '>', '<'];
+        var forbidden_count = forbidden.length;
+        for (var ind_fb = 0; ind_fb<forbidden_count; ind_fb++) {
+            var cur_fb = forbidden[ind_fb];
+            if (cur_val.indexOf(cur_fb) > -1) {
+                $('#book').hide();
+                if (!silent) {
+                    alert('do not use: < > " \' \\');
+                }
+                return;
+            }
+        }
     }
 
     if (!endsWith(cur_js_url, '/')) {
@@ -54,12 +48,12 @@ window.update_link = function() {
         cur_js_url_ssl += '/';
     }
 
-    var bml_link = "javascript:(function(){if (!window.cd_is_initialized) {window.cd_feed_name='simple'; window.cd_user_name='";
+    var bml_link = "javascript:(function(){if ((!window._ubi_cd) || (!window._ubi_cd['is_initialized'])) {window._ubi_cd={}; window._ubi_cd['feed_name']='" + cur_feed + "'; window._ubi_cd['user_name']='";
     bml_link += cur_name + "'; ";
-    bml_link += "window.cd_feed_url='" + cur_data_url + "'; if ('https:' == document.location.protocol) {window.cd_feed_url = '" + cur_data_url_ssl + "'}; ";
-    bml_link += "window.cd_jquery_url='" + cur_jquery_url + "'; if ('https:' == document.location.protocol) {window.cd_jquery_url = '" + cur_jquery_url_ssl + "'}; ";
+    bml_link += "window._ubi_cd['feed_url']='" + cur_data_url + "'; if ('https:' == document.location.protocol) {window._ubi_cd['feed_url'] = '" + cur_data_url_ssl + "'}; ";
+    bml_link += "window._ubi_cd['jquery_url']='" + cur_jquery_url + "'; if ('https:' == document.location.protocol) {window._ubi_cd['jquery_url'] = '" + cur_jquery_url_ssl + "'}; ";
     bml_link += "var js_url = '" + cur_js_url + "'; if ('https:' == document.location.protocol) {js_url = '" + cur_js_url_ssl + "'}; ";
-    bml_link += "document.body.appendChild(document.createElement('script')).src=js_url+'mini_cd.js';} else {window.cd_show_switch();}})();";
+    bml_link += "document.body.appendChild(document.createElement('script')).src=js_url+'mini_cd.js';} else {window._ubi_cd['show_switch']();}})();";
 
     $('#book').attr('href', bml_link);
     $('#book').show();
@@ -70,23 +64,25 @@ window.update_link = function() {
 <body onLoad="window.update_link();">
 Fill in your user name:
 <br />
-<input id="name" type="text" size="25" onChange="window.update_link();" onKeyup="window.update_link();"></input>
+<input id="user_name" type="text" size="25" onChange="window.update_link(false);" onKeyup="window.update_link(true);"></input>
 <br />
 <br />
 <a id="book" style="display:none;" href="#" onClick="alert('save the link as bookmarklet'); return false;">Snippets: simple feed</a>
 <br />
 <br />
 <br />
-<input id="data_url" title="data url" type="text" size="40" onChange="window.update_link();" onKeyup="window.update_link();" value="http://localhost/cd/data/bml_feeds/"></input>
+<input id="feed_name" title="feed name" type="text" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="simple"></input>
 <br />
-<input id="data_url_ssl" title="data url / ssl" type="text" size="40" onChange="window.update_link();" onKeyup="window.update_link();" value="https://localhost/cd/data/bml_feeds/"></input>
+<input id="data_url" title="data url" type="text" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="http://localhost/cd/data/bml_feeds/"></input>
 <br />
-<input id="js_url" title="JS url" type="text" size="40" onChange="window.update_link();" onKeyup="window.update_link();" value="http://localhost/cd/static/lets/"></input>
+<input id="data_url_ssl" title="data url / ssl" type="text" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="https://localhost/cd/data/bml_feeds/"></input>
 <br />
-<input id="js_url_ssl" title="JS url / ssl" type="text" size="40" onChange="window.update_link();" onKeyup="window.update_link();" value="https://localhost/cd/static/lets/"></input>
+<input id="js_url" title="JS url" type="text" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="http://localhost/cd/static/lets/"></input>
 <br />
-<input id="jquery_url" title="jQuery url" type="text" size="40" onChange="window.update_link();" onKeyup="window.update_link();" value="http://localhost/cd/static/lets/jquery.min.js"></input>
+<input id="js_url_ssl" title="JS url / ssl" type="text" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="https://localhost/cd/static/lets/"></input>
 <br />
-<input id="jquery_url_ssl" title="jQuery url / ssl" type="text" size="40" onChange="window.update_link();" onKeyup="window.update_link();" value="https://localhost/cd/static/lets/jquery.min.js"></input>
+<input id="jquery_url" title="jQuery url" type="text" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="http://localhost/cd/static/lets/jquery.min.js"></input>
+<br />
+<input id="jquery_url_ssl" title="jQuery url / ssl" type="text" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="https://localhost/cd/static/lets/jquery.min.js"></input>
 </body>
 </html>

@@ -25,7 +25,7 @@ def take_bml():
         for entry in cursor:
             tags += entry['tags']
 
-        tag_string = 'window.cd_terms = ' + json.dumps(tags) + ';\n'
+        tag_string = 'window._ubi_cd["search_terms"] = ' + json.dumps(tags) + ';\n'
 
         return (tag_string, 200, {'Content-Type': 'application/javascript'})
 
