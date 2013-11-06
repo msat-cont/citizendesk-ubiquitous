@@ -1,7 +1,7 @@
 <html>
 <head>
-<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" /></script>
-<!--script type="text/javascript" src="jquery.min.js" /></script-->
+<!--script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" /></script-->
+<script type="text/javascript" src="jquery.min.js" /></script>
 <script type="text/javascript" language="JavaScript">
 window.update_link = function() {
     function endsWith(str, suffix) {
@@ -14,6 +14,8 @@ window.update_link = function() {
     var cur_data_url_ssl = $('#data_url_ssl').val();
     var cur_js_url = $('#js_url').val();
     var cur_js_url_ssl = $('#js_url_ssl').val();
+    var cur_jquery_url = $('#jquery_url').val();
+    var cur_jquery_url_ssl = $('#jquery_url_ssl').val();
 
     if (0 == cur_name.length) {
         $('#book').hide();
@@ -36,6 +38,14 @@ window.update_link = function() {
         $('#book').hide();
         return;
     }
+    if (0 == cur_jquery_url.length) {
+        $('#book').hide();
+        return;
+    }
+    if (0 == cur_jquery_url_ssl.length) {
+        $('#book').hide();
+        return;
+    }
 
     if (!endsWith(cur_js_url, '/')) {
         cur_js_url += '/';
@@ -47,6 +57,7 @@ window.update_link = function() {
     var bml_link = "javascript:(function(){if (!window.cd_is_initialized) {window.cd_feed_name='simple'; window.cd_user_name='";
     bml_link += cur_name + "'; ";
     bml_link += "window.cd_feed_url='" + cur_data_url + "'; if ('https:' == document.location.protocol) {window.cd_feed_url = '" + cur_data_url_ssl + "'}; ";
+    bml_link += "window.cd_jquery_url='" + cur_jquery_url + "'; if ('https:' == document.location.protocol) {window.cd_jquery_url = '" + cur_jquery_url_ssl + "'}; ";
     bml_link += "var js_url = '" + cur_js_url + "'; if ('https:' == document.location.protocol) {js_url = '" + cur_js_url_ssl + "'}; ";
     bml_link += "document.body.appendChild(document.createElement('script')).src=js_url+'mini_cd.js';} else {window.cd_show_switch();}})();";
 
@@ -73,5 +84,9 @@ Fill in your user name:
 <input id="js_url" title="JS url" type="text" size="40" onChange="window.update_link();" onKeyup="window.update_link();" value="http://localhost/cd/static/lets/"></input>
 <br />
 <input id="js_url_ssl" title="JS url / ssl" type="text" size="40" onChange="window.update_link();" onKeyup="window.update_link();" value="https://localhost/cd/static/lets/"></input>
+<br />
+<input id="jquery_url" title="jQuery url" type="text" size="40" onChange="window.update_link();" onKeyup="window.update_link();" value="http://localhost/cd/static/lets/jquery.min.js"></input>
+<br />
+<input id="jquery_url_ssl" title="jQuery url / ssl" type="text" size="40" onChange="window.update_link();" onKeyup="window.update_link();" value="https://localhost/cd/static/lets/jquery.min.js"></input>
 </body>
 </html>

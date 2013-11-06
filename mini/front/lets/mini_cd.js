@@ -11,23 +11,49 @@
         else {
             $('#mini_cd_page_session').hide();
             $('#mini_cd_find_terms').hide();
+            $('#mini_cd_find_prev').hide();
+            $('#mini_cd_find_next').hide();
+
+            $('#mini_cd_find_terms').prop('disabled', false);
+
+            search_make = true;
+            search_positions = [];
+            search_positions_index = -1;
+            search_positions_id = null;
+
+            serach_label_idx = 0;
+            $('#mini_cd_find_terms').html(serach_labels[serach_label_idx]);
+            $('#mini_cd_find_terms').css('background-color', back_cols['button_std']);
+            $('#mini_cd_find_terms').css('color', 'black');
+            $('#mini_cd_find_terms').css('cursor', 'pointer');
+
+            $(document.body).removeHighlight();
+            cd_highlight_rank = 0;
         }
     };
 
+    var back_cols = {
+        'button_std': 'rgb(220, 220, 240)',
+        'button_dis': 'silver',
+        'term_found': 'yellow',
+        'term_found_active': 'gold',
+        'context_menu': '#ddd'
+    };
+
     var button_css = {
-        'padding': '1px',
+        'padding': '5px',
         'box-shadow': '1px 1px 1px 1px #ccc',
-        'background-color': 'rgb(220, 220, 240)',
+        'background-color': back_cols['button_std'],
         'color': 'rgb(0, 0, 0)',
         'border': '1px solid rgb(0, 0, 0)',
         'border-radius': '5px',
-        'margin': '5px',
+        'margin-top': '5px',
+        'margin-bottom': '5px',
         'font-size': '17px',
         'line-height': '1',
         'text-align': 'center',
         'font-family': 'Helvetica,Arial,sans-serif',
         'text-decoration': 'none',
-        'height': '28px',
         'cursor': 'pointer',
         '-moz-box-sizing': 'padding-box'
     };
@@ -38,12 +64,31 @@
         return result;
     };
 
+    function getScrollXY() {
+        var scrOfX = 0, scrOfY = 0;
+        if( typeof( window.pageYOffset ) == 'number' ) {
+            //Netscape compliant
+            scrOfY = window.pageYOffset;
+            scrOfX = window.pageXOffset;
+        } else if( document.body && ( document.body.scrollLeft || document.body.scrollTop ) ) {
+            //DOM compliant
+            scrOfY = document.body.scrollTop;
+            scrOfX = document.body.scrollLeft;
+        } else if( document.documentElement && ( document.documentElement.scrollLeft || document.documentElement.scrollTop ) ) {
+            //IE6 standards compliant mode
+            scrOfY = document.documentElement.scrollTop;
+            scrOfX = document.documentElement.scrollLeft;
+        }
+        return {'left': scrOfX, 'top': scrOfY};
+    };
+
     function start_loading() {
         var v = '1.7.1';
         if (window.jQuery === undefined || window.jQuery.fn.jquery < v) {
             var done = false;
             var script = document.createElement('script');
-            script.src = '//ajax.googleapis.com/ajax/libs/jquery/' + v + '/jquery.min.js';
+            //script.src = '//ajax.googleapis.com/ajax/libs/jquery/' + v + '/jquery.min.js';
+            script.src = window.cd_jquery_url;
             script.onload = script.onreadystatechange = function(){
                 if (!done && (!this.readyState || this.readyState == 'loaded' || this.readyState == 'complete')) {
                     done = true;
@@ -69,6 +114,7 @@
         document.getElementsByTagName('head')[0].appendChild(script);
     };
 
+    var cd_highlight_rank = 0;
     function set_search_plugin() {
         // this jQuery highlighting addon is based on
         // http://johannburkard.de/resources/Johann/jquery.highlight-4.js
@@ -82,7 +128,9 @@
                     if (re_res && ('index' in re_res) && (re_res['index'] >= 0)) {
                         var spannode = document.createElement('span');
                         spannode.className = 'cd_highlight';
-                        $(spannode).css('background-color', 'yellow');
+                        cd_highlight_rank += 1;
+                        spannode.setAttribute('id', 'cd_highlight_' + cd_highlight_rank);
+                        $(spannode).css('background-color', back_cols['term_found']);
                         $(spannode).css('color', 'black');
                         var middlebit = node.splitText(re_res['index']);
                         var endbit = middlebit.splitText(re_res[0].length);
@@ -188,6 +236,12 @@
         });
 
         $(form).on('submit', function(ev) {
+            items_saved_count += 1;
+            var items_word = 'items';
+            if (1 == items_saved_count) {
+                items_word = 'item';
+            }
+            $('#mini_cd_page_session').attr('title', ' ' + items_saved_count + ' ' + items_word + ' saved ');
         });
 
         document.body.appendChild(iframe);
@@ -216,9 +270,9 @@
                 'display': 'none',
                 'position': 'absolute',
                 'padding': '10px',
-                'background-color': '#ddd',
+                'background-color': back_cols['context_menu'],
                 'border': '1px solid #000',
-                'z-index': 10000
+                'z-index': '10000'
             });
 
             $('#mini_cd_txt_menu').css('top', e.pageY+'px');
@@ -236,6 +290,7 @@
 
     };
 
+    var items_saved_count = 0;
     function prepare_open(base_url) {
 
         var form = document.createElement('form');
@@ -244,10 +299,11 @@
         form.setAttribute('action', base_url + '?ref=' + window.cd_session_id);
         form.setAttribute('target', '_blank');
 
-        var sessionButton = document.createElement('input');
+        var sessionButton = document.createElement('div');
         sessionButton.setAttribute('id', 'mini_cd_page_session');
-        sessionButton.setAttribute('type', 'submit');
-        sessionButton.setAttribute('value', 'page session');
+        sessionButton.setAttribute('title', ' ' + items_saved_count + ' items saved ');
+
+        $(sessionButton).html('page session');
 
         $(form).css('display', 'none');
 
@@ -273,23 +329,147 @@
         document.body.appendChild(sessionButton);
     };
 
+    var search_positions = [];
+    var search_positions_index = -1;
+    var search_positions_id = null;
+
+    function find_initial_match() {
+        if (0 == search_positions.length) {
+            return;
+        }
+        page_offset = getScrollXY();
+
+        search_positions_index = 0;
+        while (search_positions[search_positions_index].top < page_offset.top) {
+            search_positions_index += 1;
+            if (search_positions_index == search_positions.length) {
+                search_positions_index = 0;
+                break;
+            }
+        }
+
+        find_match();
+    }
+
+    function find_next_match() {
+        if (0 == search_positions.length) {
+            return;
+        }
+        search_positions_index += 1;
+        if (search_positions_index == search_positions.length) {
+            search_positions_index = 0;
+        }
+        find_match();
+    };
+
+    function find_prev_match() {
+        if (0 == search_positions.length) {
+            return;
+        }
+        search_positions_index -= 1;
+        if (search_positions_index == -1) {
+            search_positions_index = search_positions.length - 1;
+        }
+        find_match();
+    };
+
+    function find_match() {
+        cur_data = search_positions[search_positions_index];
+        cur_left = cur_data.left - 20;
+        if (0 > cur_left) {
+            cur_left = 0;
+        }
+        cur_top = cur_data.top - 20;
+        if (0 > cur_top) {
+            cur_top = 0;
+        }
+
+        if (search_positions_id) {
+            $('#' + search_positions_id).css('background-color', back_cols['term_found']);
+        }
+        search_positions_id = cur_data.id;
+        $('#' + search_positions_id).css('background-color', back_cols['term_found_active']);
+
+        var show_rank = search_positions_index + 1;
+        $('#mini_cd_find_prev').attr('title', ' ' + show_rank + ' / ' + search_positions.length + ' ');
+        $('#mini_cd_find_next').attr('title', ' ' + show_rank + ' / ' + search_positions.length + ' ');
+
+        window.scrollTo(cur_left, cur_top);
+    };
+
+    function show_no_result() {
+        $(document.body).removeHighlight();
+        cd_highlight_rank = 0;
+
+        $('#mini_cd_find_terms').prop('disabled', true);
+        $('#mini_cd_find_terms').css('background-color', back_cols['button_dis']);
+        $('#mini_cd_find_terms').css('color', 'grey');
+        $('#mini_cd_find_terms').css('cursor', 'default');
+        $('#mini_cd_find_terms').html('none found');
+    };
+
+    function setSearchOffsets() {
+        search_positions = [];
+        search_positions_index = -1;
+        search_positions_id = null;
+
+        $('.cd_highlight').each(function(ind, elm) {
+            var pos = $(elm).offset();
+            if (pos && ('top' in pos) && ('left' in pos) && (pos.top != null) && (pos.left != null)) {
+                if ((pos.top > 0) && (pos.left > 0)) {
+                    var pos_data = {'left': pos.left, 'top': pos.top, 'id': elm.id};
+                    search_positions.push(pos_data);
+                }
+            }
+        });
+
+        search_positions.sort(function(a,b) {
+            var top_diff = a.top - b.top;
+            if (0 != top_diff) {
+                return top_diff;
+            }
+            var left_diff = a.left - b.left;
+            return left_diff;
+        });
+
+        if (0 == search_positions.length) {
+            show_no_result();
+            return;
+        }
+
+        $('#mini_cd_find_prev').show()
+        $('#mini_cd_find_next').show()
+
+        find_initial_match();
+    };
+
+    var search_make = true;
+    var serach_label_idx = 0;
+    var serach_labels = ['find terms', 'hide terms'];
     function prepare_search() {
-        var serach_label_idx = 0;
-        var serach_labels = ['find terms', 'hide terms'];
-        var search_make = true;
 
         var form = document.createElement('form');
         form.setAttribute('id', 'mini_cd_search');
         form.setAttribute('method', 'get');
         form.setAttribute('target', '_blank');
 
-        var searchButton = document.createElement('input');
+        var searchButton = document.createElement('div');
         searchButton.setAttribute('id', 'mini_cd_find_terms');
-        searchButton.setAttribute('type', 'submit');
-        searchButton.setAttribute('value', serach_labels[serach_label_idx]);
+        searchButton.setAttribute('title', ' terms: ' + window.cd_terms + ' ');
+        $(searchButton).html(serach_labels[serach_label_idx]);
+
+        var findNext = document.createElement('div');
+        findNext.setAttribute('id', 'mini_cd_find_next');
+        $(findNext).css('display', 'none');
+        $(findNext).html('>>');
+
+        var findPrev = document.createElement('div');
+        findPrev.setAttribute('id', 'mini_cd_find_prev');
+        findPrev.setAttribute('type', 'submit');
+        $(findPrev).css('display', 'none');
+        $(findPrev).html('<<');
 
         $(searchButton).css('width', '125px');
-
         $(searchButton).css(button_css);
 
         $(form).css('display', 'none');
@@ -299,18 +479,62 @@
         $(searchButton).css('left', '10px');
         $(searchButton).css('z-index', '10000');
 
+        $(findNext).css('position', 'fixed');
+        $(findNext).css('top', '76px');
+        $(findNext).css('left', '75px');
+        $(findNext).css('z-index', '10000');
+
+        $(findNext).css(button_css);
+        $(findNext).css('width', '60px');
+        $(findNext).css('padding-top', '1px');
+        $(findNext).css('padding-bottom', '1px');
+        $(findNext).css('padding-left', '2px');
+        $(findNext).css('padding-right', '2px');
+        $(findNext).css('vertical-align', 'middle');
+
+        if (navigator.userAgent.toLowerCase().indexOf('webkit') > -1) {
+            $(findNext).css('margin-left', '5px');
+        }
+        else {
+            $(findNext).css('margin-left', '0px');
+        }
+
+        $(findPrev).css('position', 'fixed');
+        $(findPrev).css('top', '76px');
+        $(findPrev).css('left', '10px');
+        $(findPrev).css('z-index', '10000');
+
+        $(findPrev).css(button_css);
+        $(findPrev).css('width', '60px');
+        $(findPrev).css('padding-top', '1px');
+        $(findPrev).css('padding-bottom', '1px');
+        $(findPrev).css('padding-left', '2px');
+        $(findPrev).css('padding-right', '2px');
+        $(findPrev).css('vertical-align', 'middle');
+
         $(searchButton).css(button_css);
 
         $(searchButton).on('click', function(ev) {
+            if ($(searchButton).prop('disabled')) {
+                return;
+            }
+
             $(form).submit();
             serach_label_idx = 1 - serach_label_idx;
-            searchButton.setAttribute('value', serach_labels[serach_label_idx]);
+            $(searchButton).html(serach_labels[serach_label_idx]);
             search_make = !search_make;
         });
 
         $(form).on('submit', function(ev) {
+            $('#mini_cd_find_prev').hide()
+            $('#mini_cd_find_next').hide()
+            search_positions = [];
+            search_positions_index = -1;
+
             var terms = window.cd_terms;
             $(document.body).removeHighlight();
+            cd_highlight_rank = 0;
+
             if (!search_make) {
                 return false;
             }
@@ -318,11 +542,18 @@
             for (ind=(terms.length-1); ind >= 0; ind--) {
                 $(document.body).highlight(terms[ind]);
             }
+            setTimeout(function(){setSearchOffsets();}, 10);
             return false;
         });
 
         document.body.appendChild(form);
         document.body.appendChild(searchButton);
+
+        document.body.appendChild(findNext);
+        document.body.appendChild(findPrev);
+
+        $(findNext).on('click', function(ev) {find_next_match();});
+        $(findPrev).on('click', function(ev) {find_prev_match();});
     };
 
     function mini_cd_save_image_url_inner(img_url, img_title) {
@@ -407,9 +638,9 @@
                 'display': 'none',
                 'position': 'absolute',
                 'padding': '10px',
-                'background-color': '#ddd',
+                'background-color': back_cols['context_menu'],
                 'border': '1px solid #000',
-                'z-index': 10000
+                'z-index': '10000'
             });
 
             $('#mini_cd_img_menu').css('top', e.pageY+'px');
