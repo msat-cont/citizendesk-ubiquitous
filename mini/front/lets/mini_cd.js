@@ -39,8 +39,6 @@
             $('#mini_cd_form').find('input[name="user_name"]').val('' + get_ubi_cd('user_name'));
 
             if (get_ubi_cd('feed_name') != feed_name) {
-alert(feed_name);
-alert(get_ubi_cd('feed_name'));
                 set_ubi_cd('feed_name', feed_name);
                 load_tags(get_ubi_cd('feed_url'), get_ubi_cd('feed_name'), finish_switch_on);
             }
