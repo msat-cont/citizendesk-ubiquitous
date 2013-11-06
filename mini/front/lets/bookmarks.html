@@ -4,12 +4,21 @@
 <script type="text/javascript" src="jquery.min.js" /></script>
 <script type="text/javascript" language="JavaScript">
 window.update_link = function(silent) {
+    $('#book').hide();
+    $('#book_warn').hide();
+
     function endsWith(str, suffix) {
         return str.indexOf(suffix, str.length - suffix.length) !== -1;
     };
 
     var cur_name = $('#user_name').val();
     var cur_feed = $('#feed_name').val();
+    var to_warn = false;
+    var cur_warn = 'false';
+    if ($('#warn_leave').attr('checked')) {
+        to_warn = true;
+        cur_warn = 'true';
+    }
 
     var cur_data_url = $('#data_url').val();
     var cur_data_url_ssl = $('#data_url_ssl').val();
@@ -24,7 +33,6 @@ window.update_link = function(silent) {
         var cur_val = in_vals[ind];
 
         if (0 == cur_val.length) {
-            $('#book').hide();
             return;
         }
         var forbidden = ['\\', '\'', '"', '>', '<'];
@@ -32,7 +40,6 @@ window.update_link = function(silent) {
         for (var ind_fb = 0; ind_fb<forbidden_count; ind_fb++) {
             var cur_fb = forbidden[ind_fb];
             if (cur_val.indexOf(cur_fb) > -1) {
-                $('#book').hide();
                 if (!silent) {
                     alert('do not use: < > " \' \\');
                 }
@@ -50,24 +57,34 @@ window.update_link = function(silent) {
 
     var bml_link = "javascript:(function(){if ((!window._ubi_cd) || (!window._ubi_cd['is_initialized'])) {window._ubi_cd={}; window._ubi_cd['feed_name']='" + cur_feed + "'; window._ubi_cd['user_name']='";
     bml_link += cur_name + "'; ";
+    bml_link += "window._ubi_cd['warn_leave']=" + cur_warn + ";";
     bml_link += "window._ubi_cd['feed_url']='" + cur_data_url + "'; if ('https:' == document.location.protocol) {window._ubi_cd['feed_url'] = '" + cur_data_url_ssl + "'}; ";
     bml_link += "window._ubi_cd['jquery_url']='" + cur_jquery_url + "'; if ('https:' == document.location.protocol) {window._ubi_cd['jquery_url'] = '" + cur_jquery_url_ssl + "'}; ";
     bml_link += "var js_url = '" + cur_js_url + "'; if ('https:' == document.location.protocol) {js_url = '" + cur_js_url_ssl + "'}; ";
-    bml_link += "document.body.appendChild(document.createElement('script')).src=js_url+'mini_cd.js';} else {window._ubi_cd['show_switch']();}})();";
+    bml_link += "document.body.appendChild(document.createElement('script')).src=js_url+'mini_cd.js';} else {window._ubi_cd['show_switch'](";
+    bml_link += "'"+cur_name+"','"+cur_feed+"',"+cur_warn+");}})();";
 
-    $('#book').attr('href', bml_link);
-    $('#book').show();
-
+    if (to_warn) {
+        $('#book_warn').attr('href', bml_link);
+        $('#book_warn').show();
+    }
+    else {
+        $('#book').attr('href', bml_link);
+        $('#book').show();
+    }
 };
 </script>
 </head>
 <body onLoad="window.update_link();">
 Fill in your user name:
 <br />
-<input id="user_name" type="text" size="25" onChange="window.update_link(false);" onKeyup="window.update_link(true);"></input>
+<input id="user_name" title="user name" type="text" size="25" onChange="window.update_link(false);" onKeyup="window.update_link(true);"></input>
+<br />
+<input id="warn_leave" name="warn_leave" title="warn on page leaving" type="checkbox" onChange="window.update_link(false);" onKeyup="window.update_link(true);" checked="yes"></input><label for="warn_leave">warn on page leaving</label>
 <br />
 <br />
-<a id="book" style="display:none;" href="#" onClick="alert('save the link as bookmarklet'); return false;">Snippets: simple feed</a>
+<a id="book" style="display:none;" href="#" onClick="alert('save the link as bookmarklet'); return false;">Snippets</a>
+<a id="book_warn" style="display:none;" href="#" onClick="alert('save the link as bookmarklet'); return false;">Snippets (warn/leave)</a>
 <br />
 <br />
 <br />
