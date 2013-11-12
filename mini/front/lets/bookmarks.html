@@ -26,8 +26,10 @@ window.update_link = function(silent) {
     var cur_js_url_ssl = $('#js_url_ssl').val();
     var cur_jquery_url = $('#jquery_url').val();
     var cur_jquery_url_ssl = $('#jquery_url_ssl').val();
+    var cur_json2_url = $('#json2_url').val();
+    var cur_json2_url_ssl = $('#json2_url_ssl').val();
 
-    var in_vals = [cur_name, cur_feed, cur_data_url, cur_data_url_ssl, cur_js_url, cur_js_url_ssl, cur_jquery_url, cur_jquery_url_ssl];
+    var in_vals = [cur_name, cur_feed, cur_data_url, cur_data_url_ssl, cur_js_url, cur_js_url_ssl, cur_jquery_url, cur_jquery_url_ssl, cur_json2_url, cur_json2_url_ssl];
     var in_vals_count = in_vals.length;
     for (var ind=0; ind<in_vals_count; ind++) {
         var cur_val = in_vals[ind];
@@ -60,15 +62,18 @@ window.update_link = function(silent) {
     bml_link += "window._ubi_cd['warn_leave']=" + cur_warn + ";";
     bml_link += "window._ubi_cd['feed_url']='" + cur_data_url + "'; if ('https:' == document.location.protocol) {window._ubi_cd['feed_url'] = '" + cur_data_url_ssl + "'}; ";
     bml_link += "window._ubi_cd['jquery_url']='" + cur_jquery_url + "'; if ('https:' == document.location.protocol) {window._ubi_cd['jquery_url'] = '" + cur_jquery_url_ssl + "'}; ";
+    bml_link += "window._ubi_cd['json2_url']='" + cur_json2_url + "'; if ('https:' == document.location.protocol) {window._ubi_cd['json2_url'] = '" + cur_json2_url_ssl + "'}; ";
     bml_link += "var js_url = '" + cur_js_url + "'; if ('https:' == document.location.protocol) {js_url = '" + cur_js_url_ssl + "'}; ";
     bml_link += "document.body.appendChild(document.createElement('script')).src=js_url+'mini_cd.js';} else {window._ubi_cd['show_switch'](";
     bml_link += "'"+cur_name+"','"+cur_feed+"',"+cur_warn+");}})();";
 
     if (to_warn) {
+        $('#book_warn').html('Snippets (warn/leave): ' + cur_feed);
         $('#book_warn').attr('href', bml_link);
         $('#book_warn').show();
     }
     else {
+        $('#book').html('Snippets: ' + cur_feed);
         $('#book').attr('href', bml_link);
         $('#book').show();
     }
@@ -83,8 +88,8 @@ Fill in your user name:
 <input id="warn_leave" name="warn_leave" title="warn on page leaving" type="checkbox" onChange="window.update_link(false);" onKeyup="window.update_link(true);" checked="yes"></input><label for="warn_leave">warn on page leaving</label>
 <br />
 <br />
-<a id="book" style="display:none;" href="#" onClick="alert('save the link as bookmarklet'); return false;">Snippets</a>
-<a id="book_warn" style="display:none;" href="#" onClick="alert('save the link as bookmarklet'); return false;">Snippets (warn/leave)</a>
+<a id="book" rel="bookmarklet" style="display:none;" href="#" onClick="alert('save the link as bookmarklet'); return false;">Snippets</a>
+<a id="book_warn" rel="bookmarklet" style="display:none;" href="#" onClick="alert('save the link as bookmarklet'); return false;">Snippets (warn/leave)</a>
 <br />
 <br />
 <br />
@@ -101,5 +106,9 @@ Fill in your user name:
 <input id="jquery_url" title="jQuery url" type="text" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="http://localhost/cd/static/lets/jquery.min.js"></input>
 <br />
 <input id="jquery_url_ssl" title="jQuery url / ssl" type="text" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="https://localhost/cd/static/lets/jquery.min.js"></input>
+<br />
+<input id="json2_url" title="json2 url" type="text" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="http://localhost/cd/static/lets/json2.min.js"></input>
+<br />
+<input id="json2_url_ssl" title="json2 url / ssl" type="text" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="https://localhost/cd/static/lets/json2.min.js"></input>
 </body>
 </html>
