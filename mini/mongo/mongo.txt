@@ -1,6 +1,12 @@
-# the minicd db is used for data storage, with tags for search terms, and snippets for texts.
+# the minicd db is used for data storage, with ubi_feeds for tags and search terms, and snippets for texts.
 
 $ mongo
 > use minicd
-> db.tags.save({'feed':'simple', 'tags': ['corrupt', 'issue', 'transparen', 'tunnel', 'bribe']})
-
+>
+> feed_1 = {}
+> feed_1['feed'] = 'test'
+> feed_1['tags'] = ['tag 1', 'tag 2', 'tag 3']
+> feed_1['search'] = [{'term':'one', 'mode':'simple'}, {'term': 't.*?o', 'mode': 'regexp'}, {'term': 'thr?e', 'mode': 'wildcard'}]
+> 
+> db.ubi_feeds.save(feed_1)
+>

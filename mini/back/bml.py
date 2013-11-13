@@ -21,14 +21,16 @@ def take_bml():
 
     if feed_value is not None:
         tags = []
-        terms = []
+        search = []
         cursor = mongo.db.ubi_feeds.find({'feed': feed_value})
         for entry in cursor:
-            tags += entry['tags']
-            terms += entry['terms']
+            if 'tags' in entry:
+                tags += entry['tags']
+            if 'search' in entry:
+                search += entry['search']
 
         tag_string = 'window._ubi_cd["page_tags"] = ' + json.dumps(tags) + ';\n'
-        term_string = 'window._ubi_cd["search_terms"] = ' + json.dumps(terms) + ';\n'
+        term_string = 'window._ubi_cd["search_terms"] = ' + json.dumps(search) + ';\n'
 
         return (tag_string + term_string, 200, {'Content-Type': 'application/javascript'})
 

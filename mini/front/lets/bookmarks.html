@@ -1,4 +1,5 @@
 <html>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
 <head>
 <!--script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" /></script-->
 <script type="text/javascript" src="jquery.min.js" /></script>
@@ -57,15 +58,19 @@ window.update_link = function(silent) {
         cur_js_url_ssl += '/';
     }
 
-    var bml_link = "javascript:(function(){if ((!window._ubi_cd) || (!window._ubi_cd['is_initialized'])) {window._ubi_cd={}; window._ubi_cd['feed_name']='" + cur_feed + "'; window._ubi_cd['user_name']='";
-    bml_link += cur_name + "'; ";
+    var bml_link = "javascript:(function(){if((!window._ubi_cd)||(!window._ubi_cd['is_initialized'])){window._ubi_cd={};window._ubi_cd['feed_name']='" + cur_feed + "';window._ubi_cd['user_name']='";
+    bml_link += cur_name + "';";
     bml_link += "window._ubi_cd['warn_leave']=" + cur_warn + ";";
-    bml_link += "window._ubi_cd['feed_url']='" + cur_data_url + "'; if ('https:' == document.location.protocol) {window._ubi_cd['feed_url'] = '" + cur_data_url_ssl + "'}; ";
-    bml_link += "window._ubi_cd['jquery_url']='" + cur_jquery_url + "'; if ('https:' == document.location.protocol) {window._ubi_cd['jquery_url'] = '" + cur_jquery_url_ssl + "'}; ";
-    bml_link += "window._ubi_cd['json2_url']='" + cur_json2_url + "'; if ('https:' == document.location.protocol) {window._ubi_cd['json2_url'] = '" + cur_json2_url_ssl + "'}; ";
-    bml_link += "var js_url = '" + cur_js_url + "'; if ('https:' == document.location.protocol) {js_url = '" + cur_js_url_ssl + "'}; ";
-    bml_link += "document.body.appendChild(document.createElement('script')).src=js_url+'mini_cd.js';} else {window._ubi_cd['show_switch'](";
-    bml_link += "'"+cur_name+"','"+cur_feed+"',"+cur_warn+");}})();";
+    bml_link += "window._ubi_cd['feed_url']='" + cur_data_url + "';if('https:'==document.location.protocol){window._ubi_cd['feed_url']='" + cur_data_url_ssl + "'};";
+    bml_link += "window._ubi_cd['jquery_url']='" + cur_jquery_url + "';if('https:'==document.location.protocol){window._ubi_cd['jquery_url']='" + cur_jquery_url_ssl + "'};";
+    bml_link += "window._ubi_cd['json2_url']='" + cur_json2_url + "';if('https:'==document.location.protocol){window._ubi_cd['json2_url']='" + cur_json2_url_ssl + "'};";
+    bml_link += "document.body.appendChild(document.createElement('script')).src=(";
+    bml_link += "('https:'==document.location.protocol)?'" + cur_js_url_ssl + "':'" + cur_js_url + "'";
+    bml_link += ")+'mini_cd.js';}else{";
+    bml_link += "window._ubi_cd['show_switch'](";
+    bml_link += "{'user_name':'"+cur_name+"','feed_url':(";
+    bml_link += "('https:'==document.location.protocol)?'" + cur_data_url_ssl + "':'" + cur_data_url + "'";
+    bml_link += "),'feed_name':'"+cur_feed+"','warn_leave':"+cur_warn+"});}})();";
 
     if (to_warn) {
         $('#book_warn').html('Snippets (warn/leave): ' + cur_feed);
