@@ -6,11 +6,11 @@ from mdb import mongo_dbs, minicd_inner
 
 MAX_IMG_SHOW_LEN = 100
 
-bml_take = Blueprint('bml_take', __name__)
-bml_save = Blueprint('bml_save', __name__)
+ubi_take = Blueprint('ubi_take', __name__)
+ubi_save = Blueprint('ubi_save', __name__)
 
-@bml_take.route('/bml_feeds/', methods=['GET'])
-def take_bml():
+@ubi_take.route('/ubi_feeds/', methods=['GET'])
+def take_ubi():
 
     mongo = mongo_dbs[minicd_inner]
 
@@ -29,10 +29,12 @@ def take_bml():
             if 'search' in entry:
                 search += entry['search']
 
-        tag_string = 'window._ubi_cd["page_tags"] = ' + json.dumps(tags) + ';\n'
-        term_string = 'window._ubi_cd["search_terms"] = ' + json.dumps(search) + ';\n'
+        feed_info = 'window._ubi_cd["feed_info"] = {\n'
+        feed_info += '"page_tags" : ' + json.dumps(tags) + ',\n'
+        feed_info += '"search_terms" : ' + json.dumps(search) + '\n'
+        feed_info += '};'
 
-        return (tag_string + term_string, 200, {'Content-Type': 'application/javascript'})
+        return (feed_info, 200, {'Content-Type': 'application/javascript'})
 
     snippets = []
 
@@ -71,13 +73,16 @@ def take_bml():
 
     return (json.dumps(snippets), 200, {'Content-Type': 'application/json'})
 
-@bml_save.route('/bml_feeds/', methods=['POST'])
-def save_bml():
+@ubi_save.route('/ubi_feeds/', methods=['POST'])
+def save_ubi():
+    #to save info on user; ip, browser info, geo-info, ... ((what about cookies?))
+    #some cookies, for preferences? probably not, since working on various domains
 
     mongo = mongo_dbs[minicd_inner]
 
     snippet = {}
-    snippet['user'] = None;
+    snippet['user_id'] = None;
+    snippet['user_name'] = None;
     snippet['session'] = None;
     snippet['provider'] = None;
     snippet['created'] = datetime.datetime.utcnow();

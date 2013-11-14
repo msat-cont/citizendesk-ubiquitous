@@ -1,18 +1,34 @@
 <html>
 <meta http-equiv="content-type" content="text/html; charset=utf-8">
+<title>Ubiquitous Citizen Desk</title>
 <head>
 <!--script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" /></script-->
+<style type="text/css">
+.input_field {
+    width: 338px;
+}
+.read_only_field {
+    font-family: monospace;
+}
+</style>
 <script type="text/javascript" src="jquery.min.js" /></script>
 <script type="text/javascript" language="JavaScript">
+window.make_random_string = function (len) {
+    var chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    var result = '';
+    for (var i = len; i > 0; --i) result += chars[Math.round(Math.random() * (chars.length - 1))];
+    return result;
+};
+
+window.ends_with = function(str, suffix) {
+    return str.indexOf(suffix, str.length - suffix.length) !== -1;
+};
+
 window.update_link = function(silent) {
     $('#book').hide();
     $('#book_warn').hide();
 
-    function endsWith(str, suffix) {
-        return str.indexOf(suffix, str.length - suffix.length) !== -1;
-    };
-
-    var cur_name = $('#user_name').val();
+    var cur_user_name = $('#user_name').val();
     var cur_feed = $('#feed_name').val();
     var to_warn = false;
     var cur_warn = 'false';
@@ -21,16 +37,30 @@ window.update_link = function(silent) {
         cur_warn = 'true';
     }
 
+    var lang_elm = document.getElementById('feed_language');
+    var lang_info = lang_elm.options[lang_elm.selectedIndex];
+    var cur_lang = lang_info.value;
+
+    var cur_backlink_text = $('#backlink_text').val();
+    var cur_backlink_url = $('#backlink_url').val();
     var cur_data_url = $('#data_url').val();
     var cur_data_url_ssl = $('#data_url_ssl').val();
-    var cur_js_url = $('#js_url').val();
-    var cur_js_url_ssl = $('#js_url_ssl').val();
+
+    var cur_ubi_cd_url = $('#ubi_cd_url').val();
+    var cur_ubi_cd_url_ssl = $('#ubi_cd_url_ssl').val();
+    var cur_local_url = $('#local_url').val();
+    var cur_local_url_ssl = $('#local_url_ssl').val();
+
     var cur_jquery_url = $('#jquery_url').val();
     var cur_jquery_url_ssl = $('#jquery_url_ssl').val();
     var cur_json2_url = $('#json2_url').val();
     var cur_json2_url_ssl = $('#json2_url_ssl').val();
 
-    var in_vals = [cur_name, cur_feed, cur_data_url, cur_data_url_ssl, cur_js_url, cur_js_url_ssl, cur_jquery_url, cur_jquery_url_ssl, cur_json2_url, cur_json2_url_ssl];
+    var cur_api_version = $('#api_version').val();
+    var cur_unique_id = $('#unique_id').val();
+
+    var in_vals = [cur_user_name, cur_feed, cur_lang, cur_api_version, cur_unique_id, cur_backlink_text, cur_backlink_url, cur_data_url, cur_data_url_ssl,
+                  cur_ubi_cd_url, cur_ubi_cd_url_ssl, cur_local_url, cur_local_url_ssl, cur_jquery_url, cur_jquery_url_ssl, cur_json2_url, cur_json2_url_ssl];
     var in_vals_count = in_vals.length;
     for (var ind=0; ind<in_vals_count; ind++) {
         var cur_val = in_vals[ind];
@@ -38,54 +68,75 @@ window.update_link = function(silent) {
         if (0 == cur_val.length) {
             return;
         }
-        var forbidden = ['\\', '\'', '"', '>', '<'];
+        var forbidden = ['\\', '\'', '"', '>', '<', '&'];
         var forbidden_count = forbidden.length;
         for (var ind_fb = 0; ind_fb<forbidden_count; ind_fb++) {
             var cur_fb = forbidden[ind_fb];
             if (cur_val.indexOf(cur_fb) > -1) {
                 if (!silent) {
-                    alert('do not use: < > " \' \\');
+                    alert('do not use: & < > " \' \\');
                 }
                 return;
             }
         }
     }
 
-    if (!endsWith(cur_js_url, '/')) {
-        cur_js_url += '/';
-    }
-    if (!endsWith(cur_js_url_ssl, '/')) {
-        cur_js_url_ssl += '/';
-    }
-
-    var bml_link = "javascript:(function(){if((!window._ubi_cd)||(!window._ubi_cd['is_initialized'])){window._ubi_cd={};window._ubi_cd['feed_name']='" + cur_feed + "';window._ubi_cd['user_name']='";
-    bml_link += cur_name + "';";
-    bml_link += "window._ubi_cd['warn_leave']=" + cur_warn + ";";
-    bml_link += "window._ubi_cd['feed_url']='" + cur_data_url + "';if('https:'==document.location.protocol){window._ubi_cd['feed_url']='" + cur_data_url_ssl + "'};";
-    bml_link += "window._ubi_cd['jquery_url']='" + cur_jquery_url + "';if('https:'==document.location.protocol){window._ubi_cd['jquery_url']='" + cur_jquery_url_ssl + "'};";
-    bml_link += "window._ubi_cd['json2_url']='" + cur_json2_url + "';if('https:'==document.location.protocol){window._ubi_cd['json2_url']='" + cur_json2_url_ssl + "'};";
-    bml_link += "document.body.appendChild(document.createElement('script')).src=(";
-    bml_link += "('https:'==document.location.protocol)?'" + cur_js_url_ssl + "':'" + cur_js_url + "'";
-    bml_link += ")+'mini_cd.js';}else{";
-    bml_link += "window._ubi_cd['show_switch'](";
-    bml_link += "{'user_name':'"+cur_name+"','feed_url':(";
-    bml_link += "('https:'==document.location.protocol)?'" + cur_data_url_ssl + "':'" + cur_data_url + "'";
-    bml_link += "),'feed_name':'"+cur_feed+"','warn_leave':"+cur_warn+"});}})();";
+    var bml_link = "javascript:(function(){";
+    bml_link += "if((!window._ubi_cd)||(!window._ubi_cd['is_triggered'])){";
+    bml_link += "window._ubi_cd={";
+    bml_link += "'is_triggered':'true',";
+    bml_link += "'api_version':'" + cur_api_version + "',";
+    bml_link += "'user_id':'" + cur_unique_id + "',";
+    bml_link += "'user_name':'" + cur_user_name + "',";
+    bml_link += "'feed_name':'" + cur_feed + "',";
+    bml_link += "'feed_language':'" + cur_lang + "',";
+    bml_link += "'feed_url':(('https:'==document.location.protocol)?'" + cur_data_url_ssl + "':'" + cur_data_url + "'),";
+    bml_link += "'backlink_text':'" + cur_backlink_text + "',";
+    bml_link += "'backlink_url':'" + cur_backlink_url + "',";
+    bml_link += "'localization_url':(('https:'==document.location.protocol)?'" + cur_local_url_ssl + "':'" + cur_local_url + "'),";
+    bml_link += "'jquery_url':(('https:'==document.location.protocol)?'" + cur_jquery_url_ssl + "':'" + cur_jquery_url + "'),";
+    bml_link += "'json2_url':(('https:'==document.location.protocol)?'" + cur_json2_url_ssl + "':'" + cur_json2_url + "'),";
+    bml_link += "'warn_leave':" + cur_warn;
+    bml_link += "};"
+    bml_link += "document.body.appendChild(document.createElement('script')).src=";
+    bml_link += "(('https:'==document.location.protocol)?'" + cur_ubi_cd_url_ssl + "':'" + cur_ubi_cd_url + "');";
+    bml_link += "}else{";
+    bml_link += "if(window._ubi_cd['is_initialized']){";
+    bml_link += "window._ubi_cd['show_switch']({";
+    bml_link += "'api_version':'" + cur_api_version + "',";
+    bml_link += "'user_id':'" + cur_unique_id + "',";
+    bml_link += "'user_name':'" + cur_user_name + "',";
+    bml_link += "'feed_name':'" + cur_feed + "',";
+    bml_link += "'feed_language':'" + cur_lang + "',";
+    bml_link += "'feed_url':(('https:'==document.location.protocol)?'" + cur_data_url_ssl + "':'" + cur_data_url + "'),";
+    bml_link += "'backlink_text':'" + cur_backlink_text + "',";
+    bml_link += "'backlink_url':'" + cur_backlink_url + "',";
+    bml_link += "'warn_leave':" + cur_warn;
+    bml_link += "});";
+    bml_link += "}";
+    bml_link += "}";
+    bml_link += "})();";
 
     if (to_warn) {
-        $('#book_warn').html('Snippets (warn/leave): ' + cur_feed);
+        $('#book_warn').html('Citizen ' + cur_user_name + ': ' + cur_feed + ' (w/l)');
         $('#book_warn').attr('href', bml_link);
         $('#book_warn').show();
     }
     else {
-        $('#book').html('Snippets: ' + cur_feed);
+        $('#book').html('Citizen ' + cur_user_name + ': ' + cur_feed);
         $('#book').attr('href', bml_link);
         $('#book').show();
     }
 };
+
+window.init_page = function() {
+    $('#unique_id').val(window.make_random_string(40));
+    window.update_link();
+};
+
 </script>
 </head>
-<body onLoad="window.update_link();">
+<body onLoad="window.init_page();">
 Fill in your user name:
 <br />
 <input id="user_name" title="user name" type="text" size="25" onChange="window.update_link(false);" onKeyup="window.update_link(true);"></input>
@@ -93,27 +144,53 @@ Fill in your user name:
 <input id="warn_leave" name="warn_leave" title="warn on page leaving" type="checkbox" onChange="window.update_link(false);" onKeyup="window.update_link(true);" checked="yes"></input><label for="warn_leave">warn on page leaving</label>
 <br />
 <br />
-<a id="book" rel="bookmarklet" style="display:none;" href="#" onClick="alert('save the link as bookmarklet'); return false;">Snippets</a>
-<a id="book_warn" rel="bookmarklet" style="display:none;" href="#" onClick="alert('save the link as bookmarklet'); return false;">Snippets (warn/leave)</a>
+<a id="book" rel="bookmarklet" title="bookmark this link" style="display:none;" href="#" onClick="alert('save the link as bookmarklet'); return false;">Citizen</a>
+<a id="book_warn" rel="bookmarklet" title="bookmark this link" style="display:none;" href="#" onClick="alert('save the link as bookmarklet'); return false;">Citizen (warn/leave)</a>
 <br />
 <br />
 <br />
-<input id="feed_name" title="feed name" type="text" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="simple"></input>
+<input id="feed_name" title="feed name" class="input_field" type="text" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="test"></input>
 <br />
-<input id="data_url" title="data url" type="text" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="http://localhost/cd/data/bml_feeds/"></input>
+<select id="feed_language" name="feed_language">
+  <option value="cz">Czech</option>
+  <option value="de">Deutsch</option>
+  <option value="en" selected="selected">English</option>
+  <option value="pt">Portuguese</option>
+  <option value="ru">Russian</option>
+  <option value="es">Spanish</option>
+</select>
 <br />
-<input id="data_url_ssl" title="data url / ssl" type="text" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="https://localhost/cd/data/bml_feeds/"></input>
 <br />
-<input id="js_url" title="JS url" type="text" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="http://localhost/cd/static/lets/"></input>
+<input id="backlink_text" title="backlink text" class="input_field" type="text" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="Citizen Desk"></input>
 <br />
-<input id="js_url_ssl" title="JS url / ssl" type="text" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="https://localhost/cd/static/lets/"></input>
+<input id="backlink_url" title="backlink url" class="input_field" type="text" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="http://localhost/cd/"></input>
 <br />
-<input id="jquery_url" title="jQuery url" type="text" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="http://localhost/cd/static/lets/jquery.min.js"></input>
+<input id="data_url" title="data url" class="input_field" type="text" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="http://localhost/cd/data/ubi_feeds/"></input>
 <br />
-<input id="jquery_url_ssl" title="jQuery url / ssl" type="text" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="https://localhost/cd/static/lets/jquery.min.js"></input>
+<input id="data_url_ssl" title="data url / ssl" class="input_field" type="text" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="https://localhost/cd/data/ubi_feeds/"></input>
+
 <br />
-<input id="json2_url" title="json2 url" type="text" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="http://localhost/cd/static/lets/json2.min.js"></input>
+<input id="ubi_cd_url" title="Ubi-CD js url" class="input_field" type="text" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="http://localhost/cd/static/lets/ubi_cd.js"></input>
 <br />
-<input id="json2_url_ssl" title="json2 url / ssl" type="text" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="https://localhost/cd/static/lets/json2.min.js"></input>
+<input id="ubi_cd_url_ssl" title="Ubi-CD js url / ssl" class="input_field" type="text" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="https://localhost/cd/static/lets/ubi_cd.js"></input>
+<br />
+<input id="local_url" title="localization url" class="input_field" type="text" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="http://localhost/cd/static/lets/ubi_localization.js"></input>
+<br />
+<input id="local_url_ssl" title="localization url / ssl" class="input_field" type="text" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="https://localhost/cd/static/lets/ubi_localization.js"></input>
+
+<br />
+<input id="jquery_url" title="jQuery url" type="text" class="input_field" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="http://localhost/cd/static/lets/jquery.min.js"></input>
+<br />
+<input id="jquery_url_ssl" title="jQuery url / ssl" class="input_field" type="text" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="https://localhost/cd/static/lets/jquery.min.js"></input>
+<br />
+<input id="json2_url" title="json2 url" type="text" class="input_field" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="http://localhost/cd/static/lets/json2.min.js"></input>
+<br />
+<input id="json2_url_ssl" title="json2 url / ssl" class="input_field" type="text" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="https://localhost/cd/static/lets/json2.min.js"></input>
+
+<br />
+<input id="api_version" title="API version" class="input_field read_only_field" type="text" size="41" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="0.3.0" readonly="readonly"></input>
+<br />
+<input id="unique_id" title="unique id" class="input_field read_only_field" type="text" size="41" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="" readonly="readonly"></input>
+
 </body>
 </html>
