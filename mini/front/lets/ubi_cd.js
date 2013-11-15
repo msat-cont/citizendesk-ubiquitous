@@ -230,9 +230,12 @@
         '-ms-user-select': 'none',
         'user-select': 'none'
     };
-    //for (unselect_key in text_unselect_css) {
-    //    button_css[unselect_key] = text_unselect_css[unselect_key];
-    //}
+
+    var html_escape_inner = function(text) {
+        return String(text)
+            .replace(/"/g, '\'')
+            .replace(/\\/g, '\\ ');
+    };
 
     var html_escape = function(text) {
         return String(text)
@@ -254,10 +257,7 @@
         .replace(/&amp;/g, '&');
     };
 
-var get_query_string = function() {
-    var QueryString = function () {
-        // This function is anonymous, is executed immediately and 
-        // the return value is assigned to QueryString!
+    var get_query_string = function () {
         var query_string = {};
         var query = window.location.search.substring(1);
         var vars = query.split("&");
@@ -276,9 +276,7 @@ var get_query_string = function() {
             }
         } 
         return query_string;
-    }();
-return QueryString;
-};
+    };
 
     var make_random_string = function(length) {
         var chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -642,6 +640,11 @@ return QueryString;
             });
 
             $('#ubi_cd_txt_menu_comment').addClass(ubi_els_class_name);
+            $('#ubi_cd_txt_menu_comment').css({
+                'border-width': '1px',
+                'border-style': 'solid',
+                'border-color': 'grey'
+            });
             $('#ubi_cd_txt_menu_comment').on('click', function(ev) {
                 return false;
             });
@@ -666,7 +669,7 @@ return QueryString;
                 'padding': '10px',
                 'background-color': back_cols['context_menu'],
                 'border': '1px solid #000',
-                'z-index': '10000'
+                'z-index': '18000'
             });
 
             $('#ubi_cd_txt_menu').css('top', e.pageY+'px');
@@ -707,7 +710,6 @@ return QueryString;
 
         $(sessionButton).css('width', '125px');
         $(sessionButton).css('position', 'fixed');
-        //$(sessionButton).css('top', '41px');
         $(sessionButton).css('top', '72px');
         $(sessionButton).css('left', '10px');
         $(sessionButton).css('z-index', '10000');
@@ -897,7 +899,7 @@ return QueryString;
                 $(selButton).css('position', 'fixed');
                 $(selButton).css('top', '' + selTop + 'px');
                 $(selButton).css('left', '' + selLeft + 'px');
-                $(selButton).css('z-index', '10000');
+                $(selButton).css('z-index', '16000');
                 $(selButton).css('font-size', '15px');
 
                 $(selButton).css('background-color', back_cols['button_dis']);
@@ -957,108 +959,330 @@ return QueryString;
         document.body.appendChild(tagsButton);
     };
 
-    var update_youtube_info = function(video_data) {
-        var info = '';
-        //info += ': ' + html_escape(video_data.) + '<br>\n';
-
-        info += 'title: ' + html_escape(video_data.title) + '<br>\n';
-        info += 'category: ' + html_escape(video_data.category) + '<br>\n';
-        info += 'description: ' + html_escape(video_data.description) + '<br>\n';
-
-        info += '<br>\n';
-
-        info += 'uploader: ' + html_escape(video_data.uploader) + '<br>\n';
-        info += 'uploaded: ' + html_escape(video_data.uploaded) + '<br>\n';
-        info += 'updated: ' + html_escape(video_data.updated) + '<br>\n';
-
-        info += '<br>\n';
-
-        if (video_data.thumbnail && video_data.thumbnail.hqDefault) {
-            info += '<img src="' + encodeURI(video_data.thumbnail.hqDefault) + '">';
+    var get_show_title = function(text, len) {
+        if (!text) {
+            return null;
+        }
+        if (typeof len === 'undefined') {
+            len = 0;
         }
 
-        //$('#ubi_cd_page_info_detail_youtube').html(JSON.stringify(video_data));
-        $('#ubi_cd_page_info_main').css('width', '500px');
-        $('#ubi_cd_page_info_detail_youtube').html(info);
+        var text_show = html_unescape(text);
+        if (len && (text_show.length > len)) {
+            text_show = text_show.substr(0, (len-2)) + '..';
+        }
+        text_show = html_escape(text_show);
+        var text_title = 'title="' + html_escape_inner(text) + '"';
+
+        return {'show': text_show, 'title': text_title};
     };
 
-    var reload_video_info = function() {
-        window.onpopstate = function(ev) {reload_video_info();};
+    var get_date_time_show = function(dt_obj) {
+        if (!dt_obj) {
+            return '';
+        }
+        return '' + dt_obj;
+    };
 
-        var QueryString = get_query_string();
-        var video_id = QueryString.v;
-        $.getJSON('http://gdata.youtube.com/feeds/api/videos/' + encodeURIComponent(video_id) + '?v=2&alt=jsonc', function(data, status, xhr) {
+    var update_youtube_info = function(video_data) {
+        if ((!video_data) || (typeof video_data !== 'object') || (!('id' in video_data)) || (!video_data.id)) {
+            return;
+        }
+
+        var video_id = get_youtube_video();
+        if (video_data.id != video_id) {
+            return;
+        }
+
+        var info = '';
+        var video_part = null;
+
+        var uploaded_info = '';
+        if ('uploaded' in video_data) {
+            try {
+                var dt_uploaded = new Date(video_data['uploaded']);
+                uploaded_info += 'uploaded: ' + html_escape_inner(get_date_time_show(dt_uploaded));
+            }
+            catch (exc) {}
+
+            if ('updated' in video_data) {
+                try {
+                    var dt_updated = new Date(video_data['updated']);
+                    uploaded_info += '\n  updated: ' + html_escape_inner(get_date_time_show(dt_updated));
+                }
+                catch (exc) {}
+            }
+        }
+        if (uploaded_info) {
+            $('#ubi_cd_page_info_detail_top').attr('title', uploaded_info)
+        }
+
+        info += '<table border="0">';
+
+        if ('title' in video_data) {
+            var video_link = 'http://www.youtube.com/watch?v=' + encodeURIComponent(video_id);
+            video_part = get_show_title(video_data['title'], 40);
+            info += '<tr><td ' + video_part['title'] + ' align="right">title:&nbsp;</td><td ' + video_part['title'] + '><a href="' + video_link + '" target="_blank">' + video_part['show'] + '</a></td></tr>';
+        }
+
+        if ('uploader' in video_data) {
+            var user_link = 'http://www.youtube.com/user/' + encodeURIComponent(video_data['uploader']);
+            video_part = get_show_title(video_data['uploader'], 40);
+            info += '<tr><td id="ubi_cd_page_info_detail_youtube_uploader_label" ' + video_part['title'] + ' align="right">uploader:&nbsp;</td><td ' + video_part['title'] + '><a href="' + user_link + '" target="_blank"><span id="ubi_cd_page_info_detail_youtube_uploader" user_id="' + html_escape_inner(video_data['uploader']) + '">' + video_part['show'] + '</span></a></td></tr>';
+
+            $.getJSON('//gdata.youtube.com/feeds/api/users/' + encodeURIComponent(video_data['uploader']) + '?v=2&alt=json', function(data, status, xhr) {
+                if ((!data) || (!('entry' in data)) || (!data.entry)) {
+                    return;
+                }
+                var user_to_update = $('#ubi_cd_page_info_detail_youtube_uploader').attr('user_id');
+                if (!user_to_update) {
+                    return;
+                }
+
+                var user_data = data.entry;
+                if ((!('author' in user_data)) || (!user_data.author)) {
+                    return;
+                }
+                var user_author_set = user_data.author;
+                var user_author = null;
+                if (user_author_set && user_author_set.length) {
+                    user_author = user_author_set[0];
+                }
+
+                if ((!('uri' in user_author)) || (!user_author.uri) || (!('$t' in user_author.uri)) || (!user_author.uri['$t'])) {
+                    return;
+                }
+                if (user_author.uri['$t'].indexOf(user_to_update) == -1) {
+                    return;
+                }
+
+                var user_title = '';
+                if (('title' in user_data) && (user_data.title) && ('$t' in user_data.title) && (user_data.title['$t'])) {
+                    user_title += user_data.title['$t'];
+                }
+                if (('summary' in user_data) && (user_data.summary) && ('$t' in user_data.summary) && (user_data.summary['$t'])) {
+                    if (user_title) {
+                        user_title += '\n\n';
+                    }
+                    user_title += user_data.summary['$t'];
+                }
+
+                if (user_title) {
+                    $('#ubi_cd_page_info_detail_youtube_uploader').attr('title', user_title);
+                    $('#ubi_cd_page_info_detail_youtube_uploader_label').attr('title', user_title);
+                }
+            });
+
+        }
+
+        if ('category' in video_data) {
+            video_part = get_show_title(video_data['category'], 40);
+            info += '<tr><td ' + video_part['title'] + ' align="right">category:&nbsp;</td><td ' + video_part['title'] + '>' + video_part['show'] + '</td></tr>';
+        }
+
+        if ('description' in video_data) {
+            video_part = get_show_title(video_data['description'], 40);
+            info += '<tr><td ' + video_part['title'] + ' align="right">description:&nbsp;</td><td ' + video_part['title'] + '>' + video_part['show'] + '</td></tr>';
+        }
+
+        info += '</table>';
+        $('#' + page_info_elm_ids['text']).html(info);
+
+        var media = '';
+
+        if (video_data.thumbnail) {
+            if (video_data.thumbnail.hqDefault) {
+                media += '<img src="' + encodeURI(video_data.thumbnail.hqDefault) + '">';
+            }
+            else if (video_data.thumbnail.sqDefault) {
+                media += '<img src="' + encodeURI(video_data.thumbnail.sqDefault) + '">';
+            }
+        }
+
+        $('#' + page_info_elm_ids['media']).html(media);
+
+        prepare_images();
+    };
+
+    var last_youtube_video_id = null;
+    var reload_youtube_video_info = function() {
+        last_youtube_video_id = null;
+
+        $(window).on('popstate', function(ev) {
+            reload_youtube_video_info();
+        });
+        $(document).click(function(){
+            setTimeout(function(ev) {
+                var check_video_id = get_youtube_video();
+
+                if (!check_video_id) {
+                    set_page_view_info();
+                    return;
+                }
+
+                if (last_youtube_video_id == check_video_id) {
+                    return;
+                }
+
+                reload_youtube_video_info();
+            }, 1000);
+        });
+
+        var video_id = get_youtube_video();
+        if (!video_id) {
+            set_page_view_info();
+            return;
+        }
+        last_youtube_video_id = video_id;
+
+        $.getJSON('//gdata.youtube.com/feeds/api/videos/' + encodeURIComponent(video_id) + '?v=2&alt=jsonc', function(data, status, xhr) {
             if ((!data) || (!('data' in data)) || (!data.data)) {
                 return;
             }
             update_youtube_info(data.data);
         });
 
-    }
+    };
 
-    var get_page_info = function() {
-        var page_info = '';
+    var set_page_info_youtube = function(video_id) {
 
-        var is_youtube_video = false;
-        var QueryString = get_query_string();
+        var page_top = 'type: youtube video (' + html_escape(video_id) + ')';
+        $('#' + page_info_elm_ids['top']).html(page_top);
 
-        page_info += 'type: ';
-        if (document.location.host.match(/youtube\./i) != null) {
-            page_info += 'youtube';
-            if (('v' in QueryString) && QueryString.v) {
-                is_youtube_video = true;
-                page_info += ' video<br>\n';
-                page_info += 'id: ' + html_escape(QueryString.v);
+        reload_youtube_video_info();
+
+    };
+
+    var set_page_info_general = function() {
+
+        var top_info = '';
+        top_info += 'type: general';
+
+        var text_info = '';
+        text_info += 'title: ' + html_escape(document.title) + '';
+
+        $('#' + page_info_elm_ids['top']).html(top_info);
+        $('#' + page_info_elm_ids['text']).html(text_info);
+
+    };
+
+    var get_youtube_video = function() {
+        var query_string = get_query_string();
+        if (('v' in query_string) && query_string.v) {
+            return query_string.v;
+        }
+        return null;
+    };
+
+
+    var page_info_elm_ids = {
+        'top': 'ubi_cd_page_info_detail_top',
+        'text': 'ubi_cd_page_info_detail_text',
+        'send': 'ubi_cd_page_info_detail_send',
+        'media': 'ubi_cd_page_info_detail_media'
+    };
+    var set_page_view_info = function() {
+
+        for (var id_key in page_info_elm_ids) {
+            var cur_page_id = page_info_elm_ids[id_key];
+            var cur_page_elm = document.getElementById(cur_page_id);
+
+            if (cur_page_elm) {
+                cur_page_elm.parentNode.removeChild(cur_page_elm);
             }
         }
-        else {
-            page_info += 'general';
-        }
 
-        if (!is_youtube_video) {
-            page_info += '<br><br>\n';
-            page_info += 'title: ' + html_escape(document.title) + '<br>\n';
-        }
-        page_info += '<br><br>\n';
-        if (is_youtube_video) {
-            var video_id = QueryString.v;
-            page_info += '<div id="ubi_cd_page_info_detail_youtube">&nbsp;</div>\n';
-            reload_video_info();
-/*
-            $.getJSON('http://gdata.youtube.com/feeds/api/videos/' + encodeURIComponent(video_id) + '?v=2&alt=jsonc', function(data, status, xhr) {
-                if ((!data) || (!('data' in data)) || (!data.data)) {
-                    return;
-                }
-                update_youtube_info(data.data);
-                window.onpopstate = function() {reload_video_info();};
+        var page_info = '';
+
+        page_info += '<div id="ubi_cd_page_info_detail_top" style="width:490px;text-align:center;font-weight:bold;margin-bottom:5px">&nbsp;</div>\n';
+
+        page_info += '<div id="ubi_cd_page_info_detail_text">&nbsp;</div>\n';
+
+        page_info += '<div id="ubi_cd_page_info_detail_send">\n';
+
+        page_info += '<textarea id="ubi_cd_page_info_detail_comment" title=" page comment " rows="3" cols="40"></textarea>\n';
+
+        page_info += '<div id="ubi_cd_page_info_save">Save page info</div>\n';
+        page_info += '<div id="ubi_cd_page_info_priority">\n';
+        page_info += '<input type="checkbox" id="ubi_cd_page_info_priority_cb"></input>\n';
+        page_info += '<label for="ubi_cd_page_info_priority_cb">&nbsp;urgent&nbsp;priority</label>\n';
+        page_info += '</div>\n';
+        page_info += '<div>&nbsp;</div>\n';
+
+        setTimeout(function() {
+
+            $('#ubi_cd_page_info_detail_text').css({
+                'margin-top': '15px',
+                'margin-bottom': '15px',
             });
-*/
-        }
-        page_info += '<br>\n';
+            $('#ubi_cd_page_info_detail_send').css({
+                'margin-bottom': '25px',
+            });
 
-        return page_info;
+            $('#ubi_cd_page_info_detail_comment').css({
+                'border-width': '1px',
+                'border-style': 'solid',
+                'border-color': 'grey',
+                'width': '480px'
+            });
+
+            $('#ubi_cd_page_info_save').addClass(ubi_els_class_name);
+            $('#ubi_cd_page_info_save').css(text_unselect_css);
+            $('#ubi_cd_page_info_save').css({
+                'cursor': 'pointer',
+                'float': 'left',
+                'margin-top': '4px',
+                'margin-left': '0px'
+            });
+            $('#ubi_cd_page_info_priority').addClass(ubi_els_class_name);
+            $('#ubi_cd_page_info_priority').css(text_unselect_css);
+            $('#ubi_cd_page_info_priority').css({
+                'float': 'left',
+                'margin-top': '4px',
+                'margin-left': '200px'
+            });
+
+            $('#ubi_cd_page_info_save').click(function (){
+                ;
+            });
+
+        }, 0);
+
+        page_info += '</div>';
+
+        page_info += '<div id="ubi_cd_page_info_detail_media">&nbsp;</div>\n';
+
+        $('#ubi_cd_page_info_main').html(page_info);
+
+        setTimeout(function() {
+            var video_id = get_youtube_video();
+            if (video_id) {
+                set_page_info_youtube(video_id);
+            }
+            else {
+                set_page_info_general();
+            }
+        }, 10);
     };
 
     var page_info_shown = false;
     var prepare_page_info = function() {
         var pageView = document.createElement('div');
         pageView.setAttribute('id', 'ubi_cd_page_info_main');
-        pageView.className = ubi_els_class_name;
+        // not setting the class to allow snippet saving here
+        //pageView.className = ubi_els_class_name;
 
         $(pageView).css(button_css);
         $(pageView).css('display', 'none');
-        //$(pageView).css('width', '250px');
-        $(pageView).css('width', '300px');
+        $(pageView).css('width', '500px');
         $(pageView).css('position', 'fixed');
         $(pageView).css('top', '10px');
         $(pageView).css('left', '150px');
         $(pageView).css('z-index', '14000');
         $(pageView).css('background-color', back_cols['button_std']);
         $(pageView).css('cursor', 'default');
-
-        var page_info_taken = get_page_info();
-        //$(pageView).html('page info');
-        $(pageView).html(page_info_taken);
+        $(pageView).css('text-align', 'left');
+        $(pageView).css('padding-left', '10px');
 
         var pageButton = document.createElement('div');
         pageButton.setAttribute('id', 'ubi_cd_page_info');
@@ -1069,7 +1293,6 @@ return QueryString;
         $(pageButton).css(text_unselect_css);
         $(pageButton).css('width', '125px');
         $(pageButton).css('position', 'fixed');
-        //$(pageButton).css('top', '200px');
         $(pageButton).css('top', '41px');
         $(pageButton).css('left', '10px');
         $(pageButton).css('z-index', '10000');
@@ -1091,6 +1314,7 @@ return QueryString;
 
         document.body.appendChild(pageButton);
         document.body.appendChild(pageView);
+        set_page_view_info();
     };
 
     var search_positions = [];
@@ -1247,7 +1471,6 @@ return QueryString;
         $(searchButton).css(text_unselect_css);
         $(searchButton).css('width', '125px');
         $(searchButton).css('position', 'fixed');
-        //$(searchButton).css('top', '72px');
         $(searchButton).css('top', '103px');
         $(searchButton).css('left', '10px');
         $(searchButton).css('z-index', '10000');
@@ -1295,7 +1518,6 @@ return QueryString;
         $(form).css('display', 'none');
 
         $(findNext).css('position', 'fixed');
-        //$(findNext).css('top', '107px');
         $(findNext).css('top', '138px');
         $(findNext).css('left', '75px');
         $(findNext).css('z-index', '10000');
@@ -1311,7 +1533,6 @@ return QueryString;
         $(findNext).css('margin-left', css_margin_prev_next);
 
         $(findPrev).css('position', 'fixed');
-        //$(findPrev).css('top', '107px');
         $(findPrev).css('top', '138px');
         $(findPrev).css('left', '10px');
         $(findPrev).css('z-index', '10000');
@@ -1398,12 +1619,17 @@ return QueryString;
 
     var prepare_images = function() {
 
-        var menu = document.createElement('div');
-        menu.setAttribute('id', 'ubi_cd_img_menu');
-        menu.setAttribute('unselectable', 'on');
-        menu.className = ubi_els_class_name;
-        $(menu).css('display', 'none');
-        $(menu).html('<div>&nbsp;</div>');
+        var menu = document.getElementById('ubi_cd_img_menu');
+        var menu_new = false;
+        if (!menu) {
+            menu_new = true;
+            menu = document.createElement('div');
+            menu.setAttribute('id', 'ubi_cd_img_menu');
+            menu.setAttribute('unselectable', 'on');
+            menu.className = ubi_els_class_name;
+            $(menu).css('display', 'none');
+            $(menu).html('<div>&nbsp;</div>');
+        }
 
         $('img').bind('contextmenu', function(e) {
             if (!display_status) {
@@ -1459,6 +1685,11 @@ return QueryString;
             });
 
             $('#ubi_cd_img_menu_comment').addClass(ubi_els_class_name);
+            $('#ubi_cd_img_menu_comment').css({
+                'border-width': '1px',
+                'border-style': 'solid',
+                'border-color': 'grey'
+            });
             $('#ubi_cd_img_menu_comment').on('click', function(ev) {
                 return false;
             });
@@ -1493,7 +1724,7 @@ return QueryString;
                 'padding': '10px',
                 'background-color': back_cols['context_menu'],
                 'border': '1px solid #000',
-                'z-index': '10000'
+                'z-index': '18000'
             });
 
             $('#ubi_cd_img_menu').css('top', e.pageY+'px');
@@ -1507,7 +1738,9 @@ return QueryString;
             $('#ubi_cd_img_menu').hide();
         });
 
-        document.body.appendChild(menu);
+        if (menu_new) {
+            document.body.appendChild(menu);
+        }
     };
 
     var setup_localization = function() {
@@ -1547,18 +1780,20 @@ return QueryString;
     start_loading();
 
 })();
-// page info (below tags button) ... either general or page-specific; with saving
-// getting specific info on e.g. youtube/flickr/twitter/twitter_images as examples
-
 // putting priority button in
 // 0 standard
-// 1 notable
-// 2 interesting
-// 3 important
+// 1 interesting
+// 2 important
+// 3 informative
 // 4 urgent ... let's use this
 // 5 critical
 
 // to have some back-link to original/creation page (for infos, updates, ...)
+// the backlinks probably on the save/send places (2x context menu + page info)
+
 // hide search button, if no search terms available
+
 // not offer saving of transparent images ... would save something different than expected
 // look for <img> inside <a> (or similar positions), if not diretly at <img>
+
+// reset session_id and button title infos (incl. saved info) on feed switches

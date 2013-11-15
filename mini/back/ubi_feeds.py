@@ -108,8 +108,9 @@ def save_ubi():
             got_payload = True
         snippet[part] = snippet_payload[part]
 
-    if not got_payload:
-        return 'no payload provided', 404
+    # saving page info goes without snippets/images
+    #if not got_payload:
+    #    return 'no payload provided', 404
 
     snippet_other = {}
     snippet_other['page_title'] = None;
