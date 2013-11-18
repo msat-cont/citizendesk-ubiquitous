@@ -1,2 +1,2 @@
-window._ubi_cd["localization_info"] = {
+window._ubi_cd_localization = {
 };

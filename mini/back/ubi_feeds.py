@@ -29,7 +29,7 @@ def take_ubi():
             if 'search' in entry:
                 search += entry['search']
 
-        feed_info = 'window._ubi_cd["feed_info"] = {\n'
+        feed_info = 'window._ubi_cd_feeds = {\n'
         feed_info += '"page_tags" : ' + json.dumps(tags) + ',\n'
         feed_info += '"search_terms" : ' + json.dumps(search) + '\n'
         feed_info += '};'

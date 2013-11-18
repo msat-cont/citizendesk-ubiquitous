@@ -1,50 +1,65 @@
 (function(){
     var api_version = '0.3.0'
 
-    if (typeof window._ubi_cd != 'object') {
+    if (typeof window._ubi_cd_spec != 'object') {
         return;
     }
-    if (window._ubi_cd === null) {
+    if (window._ubi_cd_spec === null) {
         return;
     }
-    if (window._ubi_cd['is_started']) {
+    if (typeof window._ubi_cd_runtime != 'object') {
         return;
     }
-    var set_ubi_cd_external = function(var_key, var_value) {
-        window._ubi_cd[var_key] = var_value;
+    if (window._ubi_cd_runtime === null) {
+        return;
     }
-    set_ubi_cd_external('is_started', true);
+    if (window._ubi_cd_runtime['is_started']) {
+        return;
+    }
+    var set_ubi_cd_runtime = function(var_key, var_value) {
+        window._ubi_cd_runtime[var_key] = var_value;
+    }
+    set_ubi_cd_runtime('is_started', true);
     var is_updating = true;
 
-    if (window._ubi_cd['api_version'] != api_version) {
-        set_ubi_cd_external('is_started', false);
-        set_ubi_cd_external('is_triggered', false);
+    if (window._ubi_cd_spec['api_version'] != api_version) {
+        set_ubi_cd_runtime('is_started', false);
+        set_ubi_cd_runtime('is_triggered', false);
         alert('Attempt to load Ubiquitous Citizen Desk of a differing version.');
         return;
     }
 
     var ubi_cd_globals = {};
-    var internalize_vars = function(keys) {
-        if ((typeof keys === 'undefined') || (typeof keys != 'object') || (!keys)) {
-            for (var option_name in window._ubi_cd) {
-                ubi_cd_globals[option_name] = window._ubi_cd[option_name];
-            }
+    var internalize_vars = function(part) {
+        if ((typeof part === 'undefined') || (typeof part != 'string') || (!part)) {
+            //for (var option_name in window._ubi_cd) {
+            //    ubi_cd_globals[option_name] = window._ubi_cd[option_name];
+            //}
             return;
         }
 
-        for (var ind_ik=keys.length - 1; ind_ik>=0; ind_ik-=1) {
-            if (keys[ind_ik] in window._ubi_cd) {
-                ubi_cd_globals[keys[ind_ik]] = window._ubi_cd[keys[ind_ik]];
-            }
+        var part_name = '_ubi_cd_' + part;
+        if (!(part_name in window)) {
+            return;
+        }
+
+        for (var part_key in window[part_name]) {
+            //if (part_key in ubi_cd_globals) {
+            //    continue;
+            //}
+            ubi_cd_globals[part_key] = window[part_name][part_key];
         }
     };
+    internalize_vars('spec');
 
-    var get_ubi_cd = function(var_key, var_sub_key) {
+    //var get_ubi_cd = function(var_key, var_sub_key) {}
+    var get_ubi_cd = function(var_key) {
         if (!(var_key in ubi_cd_globals)) {
             return null;
         }
+        return ubi_cd_globals[var_key];
+/*
         var part = ubi_cd_globals[var_key];
-
         if (typeof var_sub_key === 'undefined') {
             return part;
         }
@@ -60,6 +75,7 @@
         }
 
         return part[var_sub_key];
+*/
     };
     var set_ubi_cd = function(var_key, var_value) {
         ubi_cd_globals[var_key] = var_value;
@@ -113,6 +129,7 @@
         if (display_status) {
             var use_options = {
                 'api_version': get_ubi_cd('api_version'),
+                'bookmark_id': get_ubi_cd('bookmark_id'),
                 'user_id': get_ubi_cd('user_id'),
                 'user_name': get_ubi_cd('user_name'),
                 'feed_url': get_ubi_cd('feed_url'),
@@ -133,6 +150,7 @@
                 return;
             }
 
+            set_ubi_cd('bookmark_id', use_options['bookmark_id']);
             set_ubi_cd('user_id', use_options['user_id']);
             set_ubi_cd('user_name', use_options['user_name']);
             set_ubi_cd('feed_language', use_options['feed_language']);
@@ -140,6 +158,7 @@
             set_ubi_cd('backlink_url', use_options['backlink_url']);
 
             set_ubi_cd('warn_leave', use_options['warn_leave']);
+            $('#ubi_cd_form').find('input[name="bookmark_id"]').val('' + get_ubi_cd('bookmark_id'));
             $('#ubi_cd_form').find('input[name="user_id"]').val('' + get_ubi_cd('user_id'));
             $('#ubi_cd_form').find('input[name="user_name"]').val('' + get_ubi_cd('user_name'));
 
@@ -161,6 +180,8 @@
             }
         }
         else {
+            // hide the context menus!
+
             $('#ubi_cd_page_session').hide();
             $('#ubi_cd_page_tags').hide();
             tags_shown = false;
@@ -190,7 +211,7 @@
             is_updating = false;
         }
     };
-    set_ubi_cd_external('show_switch', show_switch_action);
+    set_ubi_cd_runtime('show_switch', show_switch_action);
 
     var css_margin_prev_next = '0px';
     if (navigator.userAgent.toLowerCase().indexOf('webkit') > -1) {
@@ -223,84 +244,18 @@
         '-moz-box-sizing': 'padding-box'
     };
 
+    var button_css_flash = {
+        'box-shadow': '0px 0px 0px 0px #ccc',
+        'border': '2px solid rgb(150, 150, 150)',
+        'border-radius': '0px'
+    };
+
     var text_unselect_css = {
         '-moz-user-select': 'none',
         '-khtml-user-select': 'none',
         '-webkit-user-select': 'none',
         '-ms-user-select': 'none',
         'user-select': 'none'
-    };
-
-    var html_escape_inner = function(text) {
-        return String(text)
-            .replace(/"/g, '\'')
-            .replace(/\\/g, '\\ ');
-    };
-
-    var html_escape = function(text) {
-        return String(text)
-            .replace(/&/g, '&amp;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#39;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/\\/g, '&#92;');
-    };
-
-    var html_unescape = function(text) {
-        return String(text)
-        .replace(/&#92;/g, '\\')
-        .replace(/&gt;/g, '>')
-        .replace(/&lt;/g, '<')
-        .replace(/&#39;/g, '\'')
-        .replace(/&quot;/g, '"')
-        .replace(/&amp;/g, '&');
-    };
-
-    var get_query_string = function () {
-        var query_string = {};
-        var query = window.location.search.substring(1);
-        var vars = query.split("&");
-        for (var i=0;i<vars.length;i++) {
-            var pair = vars[i].split("=");
-            // If first entry with this name
-            if (typeof query_string[pair[0]] === "undefined") {
-                query_string[pair[0]] = pair[1];
-            // If second entry with this name
-            } else if (typeof query_string[pair[0]] === "string") {
-                var arr = [ query_string[pair[0]], pair[1] ];
-                query_string[pair[0]] = arr;
-            // If third or later entry with this name
-            } else {
-                query_string[pair[0]].push(pair[1]);
-            }
-        } 
-        return query_string;
-    };
-
-    var make_random_string = function(length) {
-        var chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        var result = '';
-        for (var i = length; i > 0; --i) result += chars[Math.round(Math.random() * (chars.length - 1))];
-        return result;
-    };
-
-    var get_scroll_xy = function() {
-        var scr_of_x = 0, scr_of_y = 0;
-        if( typeof( window.pageYOffset ) == 'number' ) {
-            //Netscape compliant mode
-            scr_of_x = window.pageXOffset;
-            scr_of_y = window.pageYOffset;
-        } else if(document.body && (document.body.scrollLeft || document.body.scrollTop)) {
-            //DOM compliant mode
-            scr_of_x = document.body.scrollLeft;
-            scr_of_y = document.body.scrollTop;
-        } else if(document.documentElement && (document.documentElement.scrollLeft || document.documentElement.scrollTop)) {
-            //IE6 standards compliant mode
-            scr_of_x = document.documentElement.scrollLeft;
-            scr_of_y = document.documentElement.scrollTop;
-        }
-        return {'left': scr_of_x, 'top': scr_of_y};
     };
 
     var start_loading = function() {
@@ -349,7 +304,7 @@
         script.onload = script.onreadystatechange = function(){
             if (!done && (!this.readyState || this.readyState == 'loaded' || this.readyState == 'complete')) {
                 done = true;
-                internalize_vars(['localization_info']);
+                internalize_vars('localization');
                 next_action();
             }
         };
@@ -363,7 +318,21 @@
         script.onload = script.onreadystatechange = function(){
             if (!done && (!this.readyState || this.readyState == 'loaded' || this.readyState == 'complete')) {
                 done = true;
-                internalize_vars(['feed_info']);
+                internalize_vars('feeds');
+                // look for search tags re-definition in the 'search_wc' var;
+                next_action();
+            }
+        };
+        document.getElementsByTagName('head')[0].appendChild(script);
+    };
+
+    var load_other_files = function(file_to_load, next_action) {
+        var done = false;
+        var script = document.createElement('script');
+        script.src = file_to_load;
+        script.onload = script.onreadystatechange = function(){
+            if (!done && (!this.readyState || this.readyState == 'loaded' || this.readyState == 'complete')) {
+                done = true;
                 next_action();
             }
         };
@@ -560,6 +529,7 @@
             'image_title': '',
             'image_url': '',
             'image_png': '',
+            'bookmark_id': '' + get_ubi_cd('bookmark_id'),
             'user_id': '' + get_ubi_cd('user_id'),
             'user_name': '' + get_ubi_cd('user_name'),
             'session': '' + page_session_id,
@@ -632,6 +602,24 @@
 
             var menu_html = '<textarea id="ubi_cd_txt_menu_comment" title=" snippet comment " rows="2" cols="16"></textarea>';
             menu_html += '<div id="ubi_cd_txt_menu_insert_snippet">Save text snippet</div>';
+
+            menu_html += '<div><li id="ubi_cd_txt_menu_priority">urgent priority';
+            var backlink_title = get_ubi_cd('backlink_text');
+            if (backlink_title) {
+                backlink_title = window._ubi_cd_utilities['html_escape_inner'](backlink_title);
+            }
+            var backlink_url = get_ubi_cd('backlink_url');
+            if (backlink_url) {
+                backlink_url = encodeURI(backlink_url);
+            }
+            if (backlink_title && backlink_url) {
+                menu_html += '&nbsp;<a id="ubi_cd_txt_menu_backlink_text" title="' + backlink_title + '" target="_blank" ';
+                menu_html += ' href="' + backlink_url + '">@</a>';
+            }
+            menu_html += '</li></div>\n';
+
+            $('#ubi_cd_txt_menu_priority').css({
+            });
 
             $('#ubi_cd_txt_menu').html(menu_html);
             $('#ubi_cd_txt_menu').addClass(ubi_els_class_name);
@@ -722,7 +710,10 @@
         });
 
         $(form).on('submit', function(ev) {
-            var commit_win = window.open(base_url + '?session=' + page_session_id, 'commit_win');
+            var bookmark_part = encodeURIComponent(get_ubi_cd('bookmark_id'));
+            var session_part = encodeURIComponent(page_session_id);
+
+            var commit_win = window.open(base_url + '?bookmark=' + bookmark_part + '&session=' + session_part, 'commit_win');
             return false;
         });
 
@@ -755,7 +746,8 @@
     };
 
     var prepare_tags = function() {
-        page_tag_values = get_ubi_cd('feed_info', 'page_tags');
+        //page_tag_values = get_ubi_cd('feed_info', 'page_tags');
+        page_tag_values = get_ubi_cd('page_tags');
         var page_tags_count = page_tag_values.length;
         page_tags = [];
         for (var ind_ptv = 0; ind_ptv < page_tags_count; ind_ptv+=1) {
@@ -931,6 +923,7 @@
         }
 
         $(tagsButton).html('item tags');
+        //tagsButton.setAttribute('title', ' specify tags on snippets/images and page info ');
         tagsButton.setAttribute('title', ' specify snippet/image tags ');
 
         $(tagsButton).on('click', function(ev) {
@@ -959,222 +952,6 @@
         document.body.appendChild(tagsButton);
     };
 
-    var get_show_title = function(text, len) {
-        if (!text) {
-            return null;
-        }
-        if (typeof len === 'undefined') {
-            len = 0;
-        }
-
-        var text_show = html_unescape(text);
-        if (len && (text_show.length > len)) {
-            text_show = text_show.substr(0, (len-2)) + '..';
-        }
-        text_show = html_escape(text_show);
-        var text_title = 'title="' + html_escape_inner(text) + '"';
-
-        return {'show': text_show, 'title': text_title};
-    };
-
-    var get_date_time_show = function(dt_obj) {
-        if (!dt_obj) {
-            return '';
-        }
-        return '' + dt_obj;
-    };
-
-    var update_youtube_info = function(video_data) {
-        if ((!video_data) || (typeof video_data !== 'object') || (!('id' in video_data)) || (!video_data.id)) {
-            return;
-        }
-
-        var video_id = get_youtube_video();
-        if (video_data.id != video_id) {
-            return;
-        }
-
-        var info = '';
-        var video_part = null;
-
-        var uploaded_info = '';
-        if ('uploaded' in video_data) {
-            try {
-                var dt_uploaded = new Date(video_data['uploaded']);
-                uploaded_info += 'uploaded: ' + html_escape_inner(get_date_time_show(dt_uploaded));
-            }
-            catch (exc) {}
-
-            if ('updated' in video_data) {
-                try {
-                    var dt_updated = new Date(video_data['updated']);
-                    uploaded_info += '\n  updated: ' + html_escape_inner(get_date_time_show(dt_updated));
-                }
-                catch (exc) {}
-            }
-        }
-        if (uploaded_info) {
-            $('#ubi_cd_page_info_detail_top').attr('title', uploaded_info)
-        }
-
-        info += '<table border="0">';
-
-        if ('title' in video_data) {
-            var video_link = 'http://www.youtube.com/watch?v=' + encodeURIComponent(video_id);
-            video_part = get_show_title(video_data['title'], 40);
-            info += '<tr><td ' + video_part['title'] + ' align="right">title:&nbsp;</td><td ' + video_part['title'] + '><a href="' + video_link + '" target="_blank">' + video_part['show'] + '</a></td></tr>';
-        }
-
-        if ('uploader' in video_data) {
-            var user_link = 'http://www.youtube.com/user/' + encodeURIComponent(video_data['uploader']);
-            video_part = get_show_title(video_data['uploader'], 40);
-            info += '<tr><td id="ubi_cd_page_info_detail_youtube_uploader_label" ' + video_part['title'] + ' align="right">uploader:&nbsp;</td><td ' + video_part['title'] + '><a href="' + user_link + '" target="_blank"><span id="ubi_cd_page_info_detail_youtube_uploader" user_id="' + html_escape_inner(video_data['uploader']) + '">' + video_part['show'] + '</span></a></td></tr>';
-
-            $.getJSON('//gdata.youtube.com/feeds/api/users/' + encodeURIComponent(video_data['uploader']) + '?v=2&alt=json', function(data, status, xhr) {
-                if ((!data) || (!('entry' in data)) || (!data.entry)) {
-                    return;
-                }
-                var user_to_update = $('#ubi_cd_page_info_detail_youtube_uploader').attr('user_id');
-                if (!user_to_update) {
-                    return;
-                }
-
-                var user_data = data.entry;
-                if ((!('author' in user_data)) || (!user_data.author)) {
-                    return;
-                }
-                var user_author_set = user_data.author;
-                var user_author = null;
-                if (user_author_set && user_author_set.length) {
-                    user_author = user_author_set[0];
-                }
-
-                if ((!('uri' in user_author)) || (!user_author.uri) || (!('$t' in user_author.uri)) || (!user_author.uri['$t'])) {
-                    return;
-                }
-                if (user_author.uri['$t'].indexOf(user_to_update) == -1) {
-                    return;
-                }
-
-                var user_title = '';
-                if (('title' in user_data) && (user_data.title) && ('$t' in user_data.title) && (user_data.title['$t'])) {
-                    user_title += user_data.title['$t'];
-                }
-                if (('summary' in user_data) && (user_data.summary) && ('$t' in user_data.summary) && (user_data.summary['$t'])) {
-                    if (user_title) {
-                        user_title += '\n\n';
-                    }
-                    user_title += user_data.summary['$t'];
-                }
-
-                if (user_title) {
-                    $('#ubi_cd_page_info_detail_youtube_uploader').attr('title', user_title);
-                    $('#ubi_cd_page_info_detail_youtube_uploader_label').attr('title', user_title);
-                }
-            });
-
-        }
-
-        if ('category' in video_data) {
-            video_part = get_show_title(video_data['category'], 40);
-            info += '<tr><td ' + video_part['title'] + ' align="right">category:&nbsp;</td><td ' + video_part['title'] + '>' + video_part['show'] + '</td></tr>';
-        }
-
-        if ('description' in video_data) {
-            video_part = get_show_title(video_data['description'], 40);
-            info += '<tr><td ' + video_part['title'] + ' align="right">description:&nbsp;</td><td ' + video_part['title'] + '>' + video_part['show'] + '</td></tr>';
-        }
-
-        info += '</table>';
-        $('#' + page_info_elm_ids['text']).html(info);
-
-        var media = '';
-
-        if (video_data.thumbnail) {
-            if (video_data.thumbnail.hqDefault) {
-                media += '<img src="' + encodeURI(video_data.thumbnail.hqDefault) + '">';
-            }
-            else if (video_data.thumbnail.sqDefault) {
-                media += '<img src="' + encodeURI(video_data.thumbnail.sqDefault) + '">';
-            }
-        }
-
-        $('#' + page_info_elm_ids['media']).html(media);
-
-        prepare_images();
-    };
-
-    var last_youtube_video_id = null;
-    var reload_youtube_video_info = function() {
-        last_youtube_video_id = null;
-
-        $(window).on('popstate', function(ev) {
-            reload_youtube_video_info();
-        });
-        $(document).click(function(){
-            setTimeout(function(ev) {
-                var check_video_id = get_youtube_video();
-
-                if (!check_video_id) {
-                    set_page_view_info();
-                    return;
-                }
-
-                if (last_youtube_video_id == check_video_id) {
-                    return;
-                }
-
-                reload_youtube_video_info();
-            }, 1000);
-        });
-
-        var video_id = get_youtube_video();
-        if (!video_id) {
-            set_page_view_info();
-            return;
-        }
-        last_youtube_video_id = video_id;
-
-        $.getJSON('//gdata.youtube.com/feeds/api/videos/' + encodeURIComponent(video_id) + '?v=2&alt=jsonc', function(data, status, xhr) {
-            if ((!data) || (!('data' in data)) || (!data.data)) {
-                return;
-            }
-            update_youtube_info(data.data);
-        });
-
-    };
-
-    var set_page_info_youtube = function(video_id) {
-
-        var page_top = 'type: youtube video (' + html_escape(video_id) + ')';
-        $('#' + page_info_elm_ids['top']).html(page_top);
-
-        reload_youtube_video_info();
-
-    };
-
-    var set_page_info_general = function() {
-
-        var top_info = '';
-        top_info += 'type: general';
-
-        var text_info = '';
-        text_info += 'title: ' + html_escape(document.title) + '';
-
-        $('#' + page_info_elm_ids['top']).html(top_info);
-        $('#' + page_info_elm_ids['text']).html(text_info);
-
-    };
-
-    var get_youtube_video = function() {
-        var query_string = get_query_string();
-        if (('v' in query_string) && query_string.v) {
-            return query_string.v;
-        }
-        return null;
-    };
-
-
     var page_info_elm_ids = {
         'top': 'ubi_cd_page_info_detail_top',
         'text': 'ubi_cd_page_info_detail_text',
@@ -1182,6 +959,7 @@
         'media': 'ubi_cd_page_info_detail_media'
     };
     var set_page_view_info = function() {
+        //var html_escape = window._ubi_cd_utilities['html_escape'];
 
         for (var id_key in page_info_elm_ids) {
             var cur_page_id = page_info_elm_ids[id_key];
@@ -1202,21 +980,89 @@
 
         page_info += '<textarea id="ubi_cd_page_info_detail_comment" title=" page comment " rows="3" cols="40"></textarea>\n';
 
-        page_info += '<div id="ubi_cd_page_info_save">Save page info</div>\n';
-        page_info += '<div id="ubi_cd_page_info_priority">\n';
+        page_info += '<table border="0" width="98%"><tr>'
+
+        page_info += '<td><span id="ubi_cd_page_info_save">Save page info</span></td>\n';
+        //page_info += '<div id="ubi_cd_page_info_priority">';
+        page_info += '<td align="right"><li id="ubi_cd_page_info_priority">urgent priority';
+
+/*
         page_info += '<input type="checkbox" id="ubi_cd_page_info_priority_cb"></input>\n';
+        //page_info += '<label for="ubi_cd_page_info_priority_cb">&nbsp;urgent</label>\n';
         page_info += '<label for="ubi_cd_page_info_priority_cb">&nbsp;urgent&nbsp;priority</label>\n';
-        page_info += '</div>\n';
-        page_info += '<div>&nbsp;</div>\n';
+*/
+        //page_info += '</div>\n';
+        var backlink_title = get_ubi_cd('backlink_text');
+        if (backlink_title) {
+            backlink_title = window._ubi_cd_utilities['html_escape_inner'](backlink_title);
+        }
+        var backlink_url = get_ubi_cd('backlink_url');
+        if (backlink_url) {
+            backlink_url = encodeURI(backlink_url);
+        }
+        //var backlink_text_max_len = 20;
+        //var get_show_title = window._ubi_cd_utilities['get_show_title'];
+        if (backlink_title && backlink_url) {
+            //var backlink_text_info = get_show_title(get_ubi_cd('backlink_text'), backlink_text_max_len);
+            page_info += '&nbsp;<a id="ubi_cd_page_info_backlink_text" title="' + backlink_title + '" target="_blank" ';
+            page_info += ' href="' + backlink_url + '">@</a>';
+        }
+
+        page_info += '</li></td></tr></table>\n';
 
         setTimeout(function() {
+            $('#ubi_cd_page_info_backlink_text').css({
+                //'margin-top': '-16px',
+                //'margin-left': '460px',
+                'text-decoration': 'none',
+                'color': 'grey'
+            });
+
+            $('#ubi_cd_page_info_priority').attr('urgent', '0');
+
+            $('#ubi_cd_page_info_priority').css({
+                //'cursor': 'pointer',
+                'list-style-type': 'circle',
+                'color': 'grey'
+            });
+            $('#ubi_cd_page_info_priority').click(function(){
+                var cur_priority = $('#ubi_cd_page_info_priority').attr('urgent');
+                var set_priority = false;
+                if ('0' == cur_priority) {
+                    set_priority = true;
+                    $('#ubi_cd_page_info_priority').attr('urgent', '2');
+                }
+                else {
+                    $('#ubi_cd_page_info_priority').attr('urgent', '0');
+                }
+
+                if (set_priority) {
+                    $('#ubi_cd_page_info_priority').css({
+                        'list-style-type': 'disc',
+                        'color': 'black'
+                    });
+                    $('#ubi_cd_page_info_backlink_text').css({
+                        'color': 'black'
+                    });
+                }
+                else {
+                    $('#ubi_cd_page_info_priority').css({
+                        'list-style-type': 'circle',
+                        'color': 'grey'
+                    });
+                    $('#ubi_cd_page_info_backlink_text').css({
+                        'color': 'grey'
+                    });
+                }
+            });
 
             $('#ubi_cd_page_info_detail_text').css({
                 'margin-top': '15px',
-                'margin-bottom': '15px',
+                'margin-bottom': '15px'
             });
             $('#ubi_cd_page_info_detail_send').css({
-                'margin-bottom': '25px',
+                //'margin-bottom': '25px'
+                'margin-bottom': '5px'
             });
 
             $('#ubi_cd_page_info_detail_comment').css({
@@ -1229,21 +1075,29 @@
             $('#ubi_cd_page_info_save').addClass(ubi_els_class_name);
             $('#ubi_cd_page_info_save').css(text_unselect_css);
             $('#ubi_cd_page_info_save').css({
-                'cursor': 'pointer',
-                'float': 'left',
-                'margin-top': '4px',
-                'margin-left': '0px'
+                //'width': '200px',
+                ////'width': '175px',
+                ////'float': 'left',
+                //'margin-top': '4px',
+                //'margin-left': '0px',
+                'cursor': 'pointer'
             });
             $('#ubi_cd_page_info_priority').addClass(ubi_els_class_name);
             $('#ubi_cd_page_info_priority').css(text_unselect_css);
             $('#ubi_cd_page_info_priority').css({
-                'float': 'left',
-                'margin-top': '4px',
-                'margin-left': '200px'
+                ////'float': 'left',
+                ////'margin-top': '4px',
+                //'margin-top': '-16px',
+                //'margin-left': '320px'
+                ////'margin-left': '175px'
             });
 
             $('#ubi_cd_page_info_save').click(function (){
-                ;
+                $('#ubi_cd_page_info_main').hide();
+                page_info_shown = false;
+
+                $('#ubi_cd_txt_menu').hide();
+                $('#ubi_cd_img_menu').hide();
             });
 
         }, 0);
@@ -1255,15 +1109,32 @@
         $('#ubi_cd_page_info_main').html(page_info);
 
         setTimeout(function() {
-            var video_id = get_youtube_video();
-            if (video_id) {
-                set_page_info_youtube(video_id);
-            }
-            else {
-                set_page_info_general();
-            }
+            start_ubi_sites();
+            //set_page_particular_info();
+            //var video_id = get_youtube_video();
+            //if (video_id) {
+            //    set_page_info_youtube(video_id);
+            //}
+            //else {
+            //    set_page_info_general();
+            //}
         }, 10);
     };
+
+    var start_ubi_sites = function() {
+        if (!('_ubi_cd_sites' in window)) {
+            setTimeout(function() {
+                start_ubi_sites();
+            }, 500);
+            return;
+        }
+        try {
+            window._ubi_cd_sites['set_page_view']({'view_ids': page_info_elm_ids, 'view_retake': set_page_view_info});
+            //window._ubi_cd_sites.set_page_particular_info(page_info_elm_ids);
+        } catch (exc) {}
+
+    };
+
 
     var page_info_shown = false;
     var prepare_page_info = function() {
@@ -1301,6 +1172,9 @@
         pageButton.setAttribute('title', ' taking info on the whole page ');
 
         $(pageButton).on('click', function(ev) {
+            $('#ubi_cd_txt_menu').hide();
+            $('#ubi_cd_img_menu').hide();
+
             page_info_shown = !page_info_shown;
 
             if (page_info_shown) {
@@ -1325,7 +1199,7 @@
         if (0 == search_positions.length) {
             return;
         }
-        page_offset = get_scroll_xy();
+        page_offset = window._ubi_cd_utilities['get_scroll_xy']();
 
         search_positions_index = 0;
         while (search_positions[search_positions_index].top < page_offset.top) {
@@ -1435,7 +1309,7 @@
     var update_search_view = function() {
         serach_label_idx = 0;
 
-        var search_info = get_ubi_cd('feed_info', 'search_terms');
+        var search_info = get_ubi_cd('search_terms');
         var search_info_count = search_info.length;
         var search_title = '';
         var search_term_some = false;
@@ -1570,7 +1444,7 @@
                 return false;
             }
 
-            var terms = get_ubi_cd('feed_info', 'search_terms');
+            var terms = get_ubi_cd('search_terms');
             var terms_count = terms.length;
             for (ind_st=0; ind_st < terms_count; ind_st+=1) {
                 var cur_pattern = get_regexp(terms[ind_st]);
@@ -1673,10 +1547,39 @@
             }
 
             var menu_html = '<textarea id="ubi_cd_img_menu_comment" title=" image comment " rows="2" cols="16"></textarea>';
+            menu_html += '<div><input id="ubi_cd_img_menu_image_check" value="" size="10" readonly="readonly"></input></div>';
             menu_html += '<div id="ubi_cd_img_menu_image_url">Save image URL</div>';
             if (has_png) {
                 menu_html += '<div id="ubi_cd_img_menu_image_bitmap">Save image bitmap</div>';
             }
+
+            menu_html += '<div><li id="ubi_cd_img_menu_priority">urgent priority';
+            var backlink_title = get_ubi_cd('backlink_text');
+            if (backlink_title) {
+                backlink_title = window._ubi_cd_utilities['html_escape_inner'](backlink_title);
+            }
+            var backlink_url = get_ubi_cd('backlink_url');
+            if (backlink_url) {
+                backlink_url = encodeURI(backlink_url);
+            }
+            if (backlink_title && backlink_url) {
+                menu_html += '&nbsp;<a id="ubi_cd_img_menu_backlink_text" title="' + backlink_title + '" target="_blank" ';
+                menu_html += ' href="' + backlink_url + '">@</a>';
+            }
+            menu_html += '</li></div>\n';
+
+            setTimeout(function() {
+                $('#ubi_cd_img_menu_image_check').val(image_url_string);
+                $('#ubi_cd_img_menu_image_check').css({
+                    'border-width': '1px',
+                    'border-style': 'solid',
+                    'border-color': 'grey',
+                    'font-size': '14px',
+                    'width': '100%'
+                });
+                //$('#ubi_cd_img_menu_image_check').bind('contextmenu', function(e) {return false;})
+                //$('#ubi_cd_img_menu_comment').bind('contextmenu', function(e) {return false;})
+            }, 10);
 
             $('#ubi_cd_img_menu').html(menu_html);
             $('#ubi_cd_img_menu').addClass(ubi_els_class_name);
@@ -1688,7 +1591,9 @@
             $('#ubi_cd_img_menu_comment').css({
                 'border-width': '1px',
                 'border-style': 'solid',
-                'border-color': 'grey'
+                'font-size': '14px',
+                'border-color': 'grey',
+                'width': '175px'
             });
             $('#ubi_cd_img_menu_comment').on('click', function(ev) {
                 return false;
@@ -1750,10 +1655,33 @@
         init_bookmarklet();
     };
 
-    var setup_bookmarklet = function() {
-        prepare_images();
 
-        page_session_id = make_random_string(32);
+
+
+    var adjust_on_flash = function () {
+        // if displayed in non-flash way, we probably do not need to change css
+        // and if not on video page, it may be safe, to fix_flash there
+        // and what about othe video sites, like vimeo?
+        // and may be some underlaying (slightly greater) div could shield it,
+        // i.e. without css changes; just with adding those underlaying divs.
+        if (window.location.href.toLowerCase().indexOf('youtube.') > -1) {
+            for (var css_property in button_css_flash) {
+                button_css[css_property] = button_css_flash[css_property];
+            }
+        }
+        else {
+            //fix_flash();
+            window._ubi_cd_utilities['fix_flash']();
+        }
+    };
+
+
+
+    var setup_bookmarklet = function() {
+        //window._ubi_cd_utilities['adjust_on_flash']();
+        adjust_on_flash();
+        prepare_images();
+        page_session_id = window._ubi_cd_utilities['make_random_string'](32);
         make_form(get_ubi_cd('feed_url'));
         prepare_open(get_ubi_cd('feed_url'));
         prepare_tags();
@@ -1764,8 +1692,21 @@
             window.onbeforeunload = function() {return leaving_question;};
         }
 
-        set_ubi_cd_external('is_initialized', true);
+        set_ubi_cd_runtime('is_initialized', true);
         is_updating = false;
+    };
+
+    var other_files_to_load = [get_ubi_cd('utilities_url'), get_ubi_cd('sites_url'), get_ubi_cd('css_url')];
+    var other_files_to_load_index = 0;
+    var take_other_files = function() {
+        if (other_files_to_load_index < other_files_to_load.length) {
+            var cur_file_to_load = other_files_to_load[other_files_to_load_index];
+            other_files_to_load_index += 1;
+            load_other_files(cur_file_to_load, take_other_files);
+            return;
+        }
+
+        setup_bookmarklet();
     };
 
     var init_localization = function() {
@@ -1773,27 +1714,21 @@
     };
 
     var init_bookmarklet = function() {
-        load_feed(get_ubi_cd('feed_url'), get_ubi_cd('feed_name'), setup_bookmarklet);
+        //load_feed(get_ubi_cd('feed_url'), get_ubi_cd('feed_name'), setup_bookmarklet);
+        load_feed(get_ubi_cd('feed_url'), get_ubi_cd('feed_name'), take_other_files);
     };
 
-    internalize_vars(null);
+    //internalize_vars(null);
     start_loading();
 
 })();
-// putting priority button in
-// 0 standard
-// 1 interesting
-// 2 important
-// 3 informative
-// 4 urgent ... let's use this
-// 5 critical
+// send site-specific info (as json) along the other data
+// may be some ergonomy-related data (window width/height)
 
-// to have some back-link to original/creation page (for infos, updates, ...)
-// the backlinks probably on the save/send places (2x context menu + page info)
-
-// hide search button, if no search terms available
-
-// not offer saving of transparent images ... would save something different than expected
-// look for <img> inside <a> (or similar positions), if not diretly at <img>
+// put a possibility for own (wildcards-based) search strings
+// (setting e.g. in context-menu on the search button)
 
 // reset session_id and button title infos (incl. saved info) on feed switches
+// check whether page_info setting is correct on page_info swhow/hide, and switches
+// into localization: strings with (some form of) ids, and date-time formatting
+// put css defs into one more another (js) file
