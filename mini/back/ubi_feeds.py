@@ -122,6 +122,30 @@ def save_ubi():
             snippet_other[part] = str(request.form[part].encode('utf8'))
         snippet[part] = snippet_other[part]
 
+    snippet_other_int = {}
+    snippet_other_int['priority'] = None;
+
+    for part in snippet_other_int:
+        if part in request.form:
+            try:
+                snippet_other_int[part] = int(request.form[part])
+            except:
+                snippet_other_int[part] = None
+        snippet[part] = snippet_other_int[part]
+
+    snippet_other_json = {}
+    snippet_other_json['ergonomy'] = None;
+    snippet_other_json['specific'] = None;
+
+    for part in snippet_other_json:
+        if part in request.form:
+            if request.form[part]:
+                try:
+                    snippet_other_json[part] = json.loads(request.form[part])
+                except:
+                    snippet_other_json[part] = None
+        snippet[part] = snippet_other_json[part]
+
     tags_param = 'tags'
     tags_value = []
     if (tags_param in request.form) and request.form[tags_param]:

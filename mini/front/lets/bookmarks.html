@@ -67,10 +67,9 @@ window.update_link = function(silent) {
     var cur_api_version = $('#api_version').val();
     var cur_bookmark_id = $('#bookmark_id').val();
     var cur_unique_id = $('#unique_id').val();
-    //var cur_search_wc = $('#search_wc').val() + ' '; // to pass with no search redefinition
 
     var in_vals = [cur_user_name, cur_feed, cur_lang, cur_api_version, cur_unique_id, cur_backlink_text, cur_backlink_url, cur_data_url, cur_data_url_ssl,
-                  cur_ubi_cd_sites, cur_ubi_cd_sites_ssl, cur_ubi_cd_css, cur_ubi_cd_css_ssl, cur_utils_url, cur_utils_url_ssl, cur_bookmark_id,// cur_search_wc,
+                  cur_ubi_cd_sites, cur_ubi_cd_sites_ssl, cur_ubi_cd_css, cur_ubi_cd_css_ssl, cur_utils_url, cur_utils_url_ssl, cur_bookmark_id,
                   cur_ubi_cd_url, cur_ubi_cd_url_ssl, cur_local_url, cur_local_url_ssl, cur_jquery_url, cur_jquery_url_ssl, cur_json2_url, cur_json2_url_ssl];
     var in_vals_count = in_vals.length;
     for (var ind=0; ind<in_vals_count; ind++) {
@@ -92,8 +91,6 @@ window.update_link = function(silent) {
         }
     }
 
-    //cur_search_wc = cur_search_wc.substring(0, (cur_search_wc.length-1));
-
     var bml_link = "javascript:(function(){";
     bml_link += "window._ubi_cd_spec={";
     bml_link += "'api_version':'" + cur_api_version + "',";
@@ -103,7 +100,6 @@ window.update_link = function(silent) {
     bml_link += "'feed_name':'" + cur_feed + "',";
     bml_link += "'feed_language':'" + cur_lang + "',";
     bml_link += "'feed_url':(('https:'==document.location.protocol)?'" + cur_data_url_ssl + "':'" + cur_data_url + "'),";
-    //bml_link += "'search_wc':" + ((cur_search_wc)?("['" + cur_search_wc + "']"):("[]")) + ",";
     bml_link += "'backlink_text':'" + cur_backlink_text + "',";
     bml_link += "'backlink_url':'" + cur_backlink_url + "',";
     bml_link += "'localization_url':(('https:'==document.location.protocol)?'" + cur_local_url_ssl + "':'" + cur_local_url + "'),";
@@ -212,10 +208,6 @@ Fill in your user name:
 <br />
 <input id="json2_url_ssl" title="json2 url / ssl" class="input_field" type="text" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="https://localhost/cd/static/lets/json2.min.js"></input>
 
-<!--
-<br />
-<input id="search_wc" title="redefined wildcard-based search" class="input_field read_only_field" type="text" size="41" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value=""></input>
--->
 <br />
 <input id="api_version" title="API version" class="input_field read_only_field" type="text" size="41" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="0.3.0" readonly="readonly"></input>
 <br />

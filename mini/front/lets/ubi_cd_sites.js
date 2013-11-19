@@ -11,6 +11,8 @@
 
     window._ubi_cd_runtime['is_sites_started'] = true;
 
+    var page_specific_data = null;
+
     var update_youtube_info = function(video_data) {
         var html_escape_inner = window._ubi_cd_utilities['html_escape_inner'];
         var get_show_title = window._ubi_cd_utilities['get_show_title'];
@@ -24,6 +26,10 @@
         if (video_data.id != video_id) {
             return;
         }
+
+        // make sure the keys are valid for JSON
+        page_specific_data = {'video': video_data};
+        //page_specific_data = video_data;
 
         var info = '';
         var video_part = null;
@@ -87,6 +93,11 @@
                     return;
                 }
 
+                // check and change the ($t) keys so that they are valid for JSON
+                //if (page_specific_data) {
+                //    page_specific_data['user'] = user_data;
+                //}
+
                 var user_title = '';
                 if (('title' in user_data) && (user_data.title) && ('$t' in user_data.title) && (user_data.title['$t'])) {
                     user_title += user_data.title['$t'];
@@ -131,6 +142,7 @@
         }
 
         $('#' + page_info_elm_ids['media']).html(media);
+        $('#' + page_info_elm_ids['media']).show();
 
         prepare_images();
     };
@@ -186,6 +198,8 @@
     };
 
     var set_page_info_general = function() {
+        page_specific_data = null;
+
         var html_escape = window._ubi_cd_utilities['html_escape'];
 
         var top_info = '';
@@ -196,6 +210,7 @@
 
         $('#' + page_info_elm_ids['top']).html(top_info);
         $('#' + page_info_elm_ids['text']).html(text_info);
+        $('#' + page_info_elm_ids['media']).hide();
 
     };
 
@@ -222,7 +237,12 @@
         }
     };
 
+    var get_page_specific_data = function() {
+        return page_specific_data;
+    };
+
     window._ubi_cd_sites = {};
     window._ubi_cd_sites['set_page_view'] = set_page_particular_info;
+    window._ubi_cd_sites['get_page_data'] = get_page_specific_data;
 
 })();

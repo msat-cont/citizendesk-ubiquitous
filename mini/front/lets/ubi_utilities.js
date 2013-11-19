@@ -152,24 +152,7 @@
         return '' + dt_obj;
     };
     window._ubi_cd_utilities['get_date_time_show'] = get_date_time_show;
-/*
-    var adjust_on_flash = function () {
-        // if displayed in non-flash way, we probably do not need to change css
-        // and if not on video page, it may be safe, to fix_flash there
-        // and what about othe video sites, like vimeo?
-        // and may be some underlaying (slightly greater) div could shield it,
-        // i.e. without css changes; just with adding those underlaying divs.
-        if (window.location.href.toLowerCase().indexOf('youtube.') > -1) {
-            for (var css_property in button_css_flash) {
-                button_css[css_property] = button_css_flash[css_property];
-            }
-        }
-        else {
-            fix_flash();
-        }
-    };
-    window._ubi_cd_utilities['adjust_on_flash'] = adjust_on_flash;
-*/
+
     var make_random_string = function(length) {
         var chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
         var result = '';
