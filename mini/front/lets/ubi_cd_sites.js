@@ -151,6 +151,10 @@
     var reload_youtube_video_info = function() {
         last_youtube_video_id = null;
 
+        //$(window).on('onloaddata', function(ev) {
+        //    reload_youtube_video_info();
+        //});
+
         $(window).on('popstate', function(ev) {
             reload_youtube_video_info();
         });

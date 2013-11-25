@@ -44,6 +44,16 @@ def take_ubi():
         session_value = str(request.args[session_param])
 
         if session_value:
+
+            count_value = None
+            count_param = 'count'
+            if count_param in request.args:
+                count_value = str(request.args[count_param])
+                if 'true' == count_value.lower():
+                    session_count = str(mongo.db.snippets.find({'session': session_value}).count())
+                    count_output = 'window._ubi_cd_runtime["session_count"] = ' + session_count + ';'
+                    return (count_output, 200, {'Content-Type': 'application/javascript'})
+
             cursor = mongo.db.snippets.find({'session': session_value}).sort([('created', -1)])
             for entry in cursor:
                 entry['_id'] = str(entry['_id'])
@@ -73,10 +83,22 @@ def take_ubi():
 
     return (json.dumps(snippets), 200, {'Content-Type': 'application/json'})
 
-@ubi_save.route('/ubi_feeds/', methods=['POST'])
+@ubi_save.route('/ubi_feeds/', methods=['POST', 'OPTIONS'])
 def save_ubi():
     #to save info on user; ip, browser info, geo-info, ... ((what about cookies?))
     #some cookies, for preferences? probably not, since working on various domains
+
+    headers = {}
+    headers['Access-Control-Allow-Origin'] = '*'
+
+    if 'OPTIONS' == request.method.upper():
+        return ('OK', 200, headers)
+
+    ping_part = 'ping'
+    if ping_part in request.form:
+        ping_val = str(request.form[ping_part].encode('utf8'))
+        if 'true' == ping_val.lower():
+            return ('OK', 200, headers)
 
     mongo = mongo_dbs[minicd_inner]
 
@@ -101,16 +123,26 @@ def save_ubi():
     snippet_payload['image_url'] = None;
     snippet_payload['image_png'] = None;
 
+    snippet_payload_boolean = ['whole_page']
+    for boolean_payload_part in snippet_payload_boolean:
+        snippet_payload[boolean_payload_part] = False;
+
     got_payload = False
     for part in snippet_payload:
         if part in request.form:
-            snippet_payload[part] = str(request.form[part].encode('utf8'))
-            got_payload = True
+            cur_payload = str(request.form[part].encode('utf8'))
+            if cur_payload:
+                if part in snippet_payload_boolean:
+                    if 'true' == cur_payload.lower():
+                        snippet_payload[part] = True
+                        got_payload = True
+                else:
+                    snippet_payload[part] = cur_payload
+                    got_payload = True
         snippet[part] = snippet_payload[part]
 
-    # saving page info goes without snippets/images
-    #if not got_payload:
-    #    return 'no payload provided', 404
+    if not got_payload:
+        return 'no payload provided', 404
 
     snippet_other = {}
     snippet_other['page_title'] = None;
@@ -165,4 +197,4 @@ def save_ubi():
 
     snippet_id = mongo.db.snippets.insert(snippet)
 
-    return str(snippet_id)
+    return (str(snippet_id), 200, headers)

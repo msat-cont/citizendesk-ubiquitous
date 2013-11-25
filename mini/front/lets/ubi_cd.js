@@ -16,6 +16,12 @@
     if (window._ubi_cd_runtime['is_started']) {
         return;
     }
+    var get_ubi_cd_runtime = function(var_key) {
+        if (!(var_key in window._ubi_cd_runtime)) {
+            return null;
+        }
+        return window._ubi_cd_runtime[var_key];
+    }
     var set_ubi_cd_runtime = function(var_key, var_value) {
         window._ubi_cd_runtime[var_key] = var_value;
     }
@@ -169,6 +175,11 @@
             $('#ubi_cd_page_info_main').hide();
             $('#ubi_cd_page_info').hide();
 
+            items_saved_shown = false;
+            $('#ubi_cd_saved_view').html('&nbsp;');
+            $('#ubi_cd_saved_view').hide();
+            $('#ubi_cd_saved_view_close').hide();
+
             $('#ubi_cd_find_terms').hide();
             switch_search_off(false);
 
@@ -209,6 +220,8 @@
         'button_dis': 'silver',
         'term_found': 'yellow',
         'term_found_active': 'gold',
+        'saved_view': '#f0f0f0',
+        'saved_view_iframe': '#f0a020',
         'context_menu': '#ddd'
     };
 
@@ -488,10 +501,143 @@
         $('#ubi_cd_form').find('input[name="image_png"]').val('');
         $('#ubi_cd_form').find('input[name="image_url"]').val('');
         $('#ubi_cd_form').find('input[name="image_title"]').val('');
-        $('#ubi_cd_form').submit();
+        $('#ubi_cd_form').find('input[name="whole_page"]').val('false');
+        send_form();
     };
 
+    var take_saved_count = function() {
+        var count_url = get_ubi_cd('feed_url') + '?count=true&bookmark=' + encodeURIComponent(get_ubi_cd('bookmark_id')) + '&session=' + encodeURIComponent(page_session_id);
+
+        load_other_files(count_url, function() {
+            items_saved_count = get_ubi_cd_runtime('session_count');
+            var items_word = 'items';
+            if (1 == items_saved_count) {
+                items_word = 'item';
+            }
+            var title = '';
+
+            var user_name = get_ubi_cd('user_name');
+            var backlink_text = get_ubi_cd('backlink_text');
+
+            if (user_name && backlink_text) {
+                title = ' ' + user_name + ' @ ' + backlink_text + ' ';
+            }
+            else if (user_name) {
+                title = ' ' + user_name + ' ';
+            }
+            else if (backlink_text) {
+                title = ' ' + backlink_text + ' ';
+            }
+
+            if (title) {
+                title += '\n\n';
+            }
+
+            title += ' feed "' + get_ubi_cd('feed_name') + '": ' + items_saved_count + ' ' + items_word + ' saved ';
+
+            $('#ubi_cd_page_session').attr('title', title);
+        });
+
+    };
+
+    var cors_works = true;
+    var cors_tested = false;
+    var send_form = function() {
+        if (!cors_tested) {
+            $.ajax({
+                type: 'POST',
+                url: $('#ubi_cd_form').attr('action'),
+                data: {'ping': true}
+            })
+            .done(function() {
+            })
+            .fail(function() {
+                cors_works = false;
+            })
+            .always(function() {
+                cors_tested = true;
+                setTimeout(function() {send_form();}, 10);
+            });
+            return;
+        }
+
+        var chosen_tags = get_chosen_tags();
+        $('#ubi_cd_form').find('input[name="tags"]').val(JSON.stringify(chosen_tags));
+
+        var ergonomy_data = {
+            'window_width': $(window).width(),
+            'window_height': $(window).height()
+        };
+        $('#ubi_cd_form').find('input[name="ergonomy"]').val(JSON.stringify(ergonomy_data));
+
+        var specific_data = window._ubi_cd_sites['get_page_data']();
+        try {
+            specific_data = JSON.stringify(specific_data);
+        }
+        catch (exc) {
+            specific_data = '';
+        }
+        $('#ubi_cd_form').find('input[name="specific"]').val(specific_data);
+
+        $('#ubi_cd_form').find('input[name="page_title"]').val(document.title);
+        $('#ubi_cd_form').find('input[name="provider"]').val(window.location.href);
+
+        if (cors_works) {
+            save_data = {};
+            for (var save_part in form_params) {
+                save_data[save_part] = $('#ubi_cd_form').find('input[name="' + save_part + '"]').val();
+            }
+
+            $.ajax({
+                type: 'POST',
+                url: $('#ubi_cd_form').attr('action'),
+                data: save_data
+            })
+            .done(function() {
+                console.log('was success');
+                take_saved_count();
+            })
+            .fail(function() {
+                console.log('not success');
+                cors_works = false;
+                $('#ubi_cd_form').submit();
+            });
+            return;
+        }
+
+        $('#ubi_cd_form').submit();
+
+    };
+
+    var set_user_at_cd_title = function(at_id) {
+        var user_name = get_ubi_cd('user_name');
+        var backlink_text = get_ubi_cd('backlink_text');
+        if ((!user_name) && (!backlink_text)) {
+            return;
+        }
+
+
+        var title =  '';
+
+        if (user_name && backlink_text) {
+            title = ' ' + user_name + ' @ ' + backlink_text + ' ';
+        }
+        else if (user_name) {
+            title = ' ' + user_name + ' ';
+        }
+        else {
+            title = ' ' + backlink_text + ' ';
+        }
+
+        setTimeout(function() {
+            $('#' + at_id).attr('title', title);
+        }, 10);
+    };
+
+    var form_params = {};
     var make_form = function(base_url) {
+        form_url = base_url;
+
         var menu = document.createElement('div');
         menu.setAttribute('id', 'ubi_cd_txt_menu');
         menu.setAttribute('unselectable', 'on');
@@ -514,6 +660,7 @@
 
         var params = {
             'text_snippet': '' + get_sel_text(),
+            'whole_page': 'false',
             'image_title': '',
             'image_url': '',
             'image_png': '',
@@ -529,8 +676,9 @@
             'specific': '',
             'provider': '' + window.location.href
         };
+        form_params = params;
 
-        for (var one_key in params) {
+        for (var one_key in form_params) {
             var oneField = document.createElement('input');
             oneField.setAttribute('type', 'hidden');
             oneField.setAttribute('name', one_key);
@@ -542,6 +690,7 @@
 
         var post_iframe_status = 0;
         $(iframe).on('load', function(ev) {
+            take_saved_count();
             post_iframe_status += 1;
             if (2 < post_iframe_status) {
                 if (1 == (post_iframe_status % 2)) {
@@ -552,34 +701,6 @@
         });
 
         $(form).on('submit', function(ev) {
-            var chosen_tags = get_chosen_tags();
-            $('#ubi_cd_form').find('input[name="tags"]').val(JSON.stringify(chosen_tags));
-
-            var ergonomy_data = {
-                'window_width': $(window).width(),
-                'window_height': $(window).height()
-            };
-            $('#ubi_cd_form').find('input[name="ergonomy"]').val(JSON.stringify(ergonomy_data));
-
-            var specific_data = window._ubi_cd_sites['get_page_data']();
-            try {
-                specific_data = JSON.stringify(specific_data);
-            }
-            catch (exc) {
-                specific_data = '';
-            }
-            $('#ubi_cd_form').find('input[name="specific"]').val(specific_data);
-
-            $('#ubi_cd_form').find('input[name="page_title"]').val(document.title);
-            $('#ubi_cd_form').find('input[name="provider"]').val(window.location.href);
-
-            items_saved_count += 1;
-            var items_word = 'items';
-            if (1 == items_saved_count) {
-                items_word = 'item';
-            }
-            $('#ubi_cd_page_session').attr('title', ' feed "' + get_ubi_cd('feed_name') + '": ' + items_saved_count + ' ' + items_word + ' saved ');
-
             return true;
         });
 
@@ -587,6 +708,9 @@
         document.body.appendChild(form);
 
         $('body').not('#ubi_cd_find_terms').not('img').on('contextmenu', function(e) {
+            if (items_saved_shown) {
+                return true;
+            }
             if (!display_status) {
                 return true;
             }
@@ -613,18 +737,17 @@
 
             menu_html += '<div><li id="ubi_cd_txt_menu_priority"><span id="ubi_cd_txt_menu_priority_set" title=" urgency setting ">urgent priority</span>';
             var backlink_title = get_ubi_cd('backlink_text');
-            if (backlink_title) {
-                backlink_title = window._ubi_cd_utilities['html_escape_inner'](backlink_title);
-            }
             var backlink_url = get_ubi_cd('backlink_url');
             if (backlink_url) {
-                backlink_url = encodeURI(backlink_url);
+                backlink_url = encodeURI(backlink_url) + '?user=' + encodeURIComponent(get_ubi_cd('user_id')) + '&bookmark=' + encodeURIComponent(get_ubi_cd('bookmark_id'));
             }
             if (backlink_title && backlink_url) {
-                menu_html += '&nbsp;<span id="ubi_cd_txt_menu_backlink_text" title="' + backlink_title + '" target="_blank" ';
+                menu_html += '&nbsp;<span id="ubi_cd_txt_menu_backlink_text" title="" target="_blank" ';
                 menu_html += ' href="' + backlink_url + '">@</spab>';
             }
             menu_html += '</li></div>\n';
+
+            set_user_at_cd_title('ubi_cd_txt_menu_backlink_text');
 
             $('#ubi_cd_txt_menu').html(menu_html);
             $('#ubi_cd_txt_menu').addClass(ubi_els_class_name);
@@ -706,9 +829,9 @@
 
     };
 
+    var items_saved_shown = false;
     var items_saved_count = 0;
     var prepare_open = function(base_url) {
-
         var form = document.createElement('form');
         form.setAttribute('id', 'ubi_cd_open');
         form.className = ubi_els_class_name;
@@ -721,7 +844,7 @@
         sessionButton.setAttribute('unselectable', 'on');
 
         sessionButton.className = ubi_els_class_name;
-        sessionButton.setAttribute('title', ' feed "' + get_ubi_cd('feed_name') + '": ' + items_saved_count + ' items saved ');
+        setTimeout(function(){ take_saved_count(); }, 10);
 
         $(sessionButton).html('saved parts');
 
@@ -737,20 +860,133 @@
         $(sessionButton).css(button_css);
         $(sessionButton).css(text_unselect_css);
 
+        var savedViewClose = document.createElement('div');
+        savedViewClose.setAttribute('id', 'ubi_cd_saved_view_close');
+        savedViewClose.setAttribute('unselectable', 'on');
+        savedViewClose.className = ubi_els_class_name;
+
+        $(savedViewClose).attr('unselectable', 'on');
+        $(savedViewClose).css(button_css);
+        $(savedViewClose).css(text_unselect_css);
+        $(savedViewClose).css({'background-color': back_cols['saved_view']});
+
+        var min_saved_view_close_left = 20;
+        var set_saved_view_close_left = ($(window).width() - 60);
+        if (set_saved_view_close_left < min_saved_view_close_left) {
+            set_saved_view_close_left = min_saved_view_close_left;
+        }
+        $(savedViewClose).css({
+            'width': '20px',
+            'height': '20px',
+            'position': 'fixed',
+            'top': '15px',
+            'left': '' + set_saved_view_close_left + 'px',
+            'z-index': '21000',
+            'background-color': back_cols['saved_view_iframe'],
+            'zoom': '1',
+            '-ms-filter': 'progid:DXImageTransform.Microsoft.Alpha(Opacity=50)',
+            'filter': 'alpha(opacity=50)',
+            'opacity': '0.5',
+            'display': 'none'
+        });
+
+        $(savedViewClose).attr('title', 'close the view');
+
+        $(savedViewClose).html('&nbsp;');
+
+        $(savedViewClose).on('click', function(ev) {
+            items_saved_shown = false;
+            $(savedView).hide();
+            $(savedViewClose).hide();
+        });
+
+        var savedView = document.createElement('div');
+        savedView.setAttribute('id', 'ubi_cd_saved_view');
+        savedView.setAttribute('unselectable', 'on');
+        savedView.className = ubi_els_class_name;
+
+        $(savedView).attr('unselectable', 'on');
+        $(savedView).css(button_css);
+        $(savedView).css(text_unselect_css);
+        $(savedView).css({'background-color': back_cols['saved_view']});
+
+        var min_saved_view_width = 200;
+        var min_saved_view_height = 200;
+        var set_saved_view_width = ($(window).width() - 20);
+        var set_saved_view_height = ($(window).height() - 20);
+        if (set_saved_view_width < min_saved_view_width) {
+            set_saved_view_width = min_saved_view_width;
+        }
+        if (set_saved_view_height < min_saved_view_height) {
+            set_saved_view_height = min_saved_view_height;
+        }
+
+        $(savedView).css('width', '' + set_saved_view_width + 'px');
+        $(savedView).css('height', '' + set_saved_view_height + 'px');
+        $(savedView).css('position', 'fixed');
+        $(savedView).css('top', '5' + 'px');
+        $(savedView).css('left', '10px');
+        $(savedView).css('z-index', '20000');
+        $(savedView).css('display', 'none');
+        $(savedView).css('cursor', 'default');
+
+        var bookmark_part = encodeURIComponent(get_ubi_cd('bookmark_id'));
+        var session_part = encodeURIComponent(page_session_id);
+
+        var commit_url = base_url + '?bookmark=' + bookmark_part + '&session=' + session_part;
+
+        var saved_view_outer = '<iframe border="0" frameBorder="0" seamless="seamless" hspace="0" vspace="0" marginheight="0" marginwidth="0" width="100%" height="100%" id="ubi_cd_saved_view_iframe" src="' + window._ubi_cd_utilities['html_escape_inner'](commit_url) + '">&nbsp;</iframe>';
+
+        $(savedView).html(saved_view_outer);
+
         $(sessionButton).on('click', function(ev) {
-            $(form).submit();
+            items_saved_shown = !items_saved_shown;
+
+            if (items_saved_shown) {
+                $(savedView).html(saved_view_outer);
+
+                $(savedView).show();
+                $(savedViewClose).show();
+            }
+            else {
+                $(savedView).html('&nbsp;');
+
+                $(savedView).hide();
+                $(savedViewClose).hide();
+            }
+
+            return false;
         });
 
         $(form).on('submit', function(ev) {
-            var bookmark_part = encodeURIComponent(get_ubi_cd('bookmark_id'));
-            var session_part = encodeURIComponent(page_session_id);
-
-            var commit_win = window.open(base_url + '?bookmark=' + bookmark_part + '&session=' + session_part, 'commit_win');
             return false;
         });
 
         document.body.appendChild(form);
         document.body.appendChild(sessionButton);
+        document.body.appendChild(savedView);
+        document.body.appendChild(savedViewClose);
+
+        $(window).on('resize', function() {
+            var new_saved_view_close_left = ($(window).width() - 60);
+            if (new_saved_view_close_left < min_saved_view_close_left) {
+                new_saved_view_close_left = min_saved_view_close_left;
+            }
+
+            var new_saved_view_width = ($(window).width() - 20);
+            var new_saved_view_height = ($(window).height() - 20);
+            if (new_saved_view_width < min_saved_view_width) {
+                new_saved_view_width = min_saved_view_width;
+            }
+            if (new_saved_view_height < min_saved_view_height) {
+                new_saved_view_height = min_saved_view_height;
+            }
+
+            $(savedViewClose).css('left', '' + new_saved_view_close_left + 'px');
+            $(savedView).css('width', '' + new_saved_view_width + 'px');
+            $(savedView).css('height', '' + new_saved_view_height + 'px');
+        });
+
     };
 
     var tags_shown = false;
@@ -1062,7 +1298,8 @@
         $('#ubi_cd_form').find('input[name="image_png"]').val('');
         $('#ubi_cd_form').find('input[name="image_url"]').val('');
         $('#ubi_cd_form').find('input[name="image_title"]').val('');
-        $('#ubi_cd_form').submit();
+        $('#ubi_cd_form').find('input[name="whole_page"]').val('true');
+        send_form();
     };
 
     var set_page_view_info = function() {
@@ -1086,30 +1323,50 @@
 
         page_info += '<textarea id="ubi_cd_page_info_detail_comment" title=" page comment " rows="3" cols="40"></textarea>\n';
 
-        page_info += '<table border="0" width="98%"><tr>'
+        page_info += '<table id="ubi_cd_page_info_detail_save_low" border="0" width="98%"><tr id="ubi_cd_page_info_detail_save_row">'
 
-        page_info += '<td><span id="ubi_cd_page_info_save">Save page info</span></td>\n';
+        page_info += '<td id="ubi_cd_page_info_detail_save_left"><span id="ubi_cd_page_info_save">Save page info</span></td>\n';
 
-        page_info += '<td align="right"><li id="ubi_cd_page_info_priority"><span id="ubi_cd_page_info_priority_set" title=" urgency setting ">urgent priority</span>';
+        page_info += '<td id="ubi_cd_page_info_detail_save_right" align="right"><li id="ubi_cd_page_info_priority"><span id="ubi_cd_page_info_priority_set" title=" urgency setting ">urgent priority</span>';
 
         var backlink_title = get_ubi_cd('backlink_text');
-        if (backlink_title) {
-            backlink_title = window._ubi_cd_utilities['html_escape_inner'](backlink_title);
-        }
         var backlink_url = get_ubi_cd('backlink_url');
         if (backlink_url) {
             backlink_url = encodeURI(backlink_url);
         }
         if (backlink_title && backlink_url) {
-            page_info += '&nbsp;<span id="ubi_cd_page_info_backlink_text" title="' + backlink_title + '" target="_blank" ';
+            page_info += '&nbsp;<span id="ubi_cd_page_info_backlink_text" title="" target="_blank" ';
             page_info += ' href="' + backlink_url + '">@</span>';
         }
 
         page_info += '</li></td></tr></table>\n';
 
+        set_user_at_cd_title('ubi_cd_page_info_backlink_text');
+
         setTimeout(function() {
 
+            $('#ubi_cd_page_info_save').attr('title', ' saving into feed: ' + get_ubi_cd('feed_name') + ' ');
+
             set_priority('ubi_cd_page_info_priority', 'ubi_cd_page_info_priority_set', 'ubi_cd_page_info_backlink_text');
+
+            $('#ubi_cd_page_info_detail_save_low').css({
+                'background-color': back_cols['button_std'],
+                'border': '0px solid black'
+            });
+            $('#ubi_cd_page_info_detail_save_row').css({
+                'background-color': back_cols['button_std'],
+                'border': '0px solid black'
+            });
+            $('#ubi_cd_page_info_detail_save_left').css({
+                'background-color': back_cols['button_std'],
+                'border': '0px solid black',
+                'text-align': 'left'
+            });
+            $('#ubi_cd_page_info_detail_save_right').css({
+                'background-color': back_cols['button_std'],
+                'border': '0px solid black',
+                'text-align': 'right'
+            });
 
             $('#ubi_cd_page_info_detail_text').css({
                 'margin-top': '15px',
@@ -1353,7 +1610,7 @@
     var update_search_view = function() {
         serach_label_idx = 0;
 
-        var search_info = get_search_terms();//get_ubi_cd('search_terms');
+        var search_info = get_search_terms();
         var search_info_count = search_info.length;
         var search_title = '';
         var search_term_some = false;
@@ -1489,7 +1746,7 @@
                 return false;
             }
 
-            var terms = get_search_terms();//get_ubi_cd('search_terms');
+            var terms = get_search_terms();
             var terms_count = terms.length;
             for (ind_st=0; ind_st < terms_count; ind_st+=1) {
                 var cur_pattern = get_regexp(terms[ind_st]);
@@ -1531,6 +1788,9 @@
         });
 
         $(searchButton).bind('contextmenu', function(e) {
+            if (items_saved_shown) {
+                return true;
+            }
             if (!display_status) {
                 return true;
             }
@@ -1617,7 +1877,8 @@
         $('#ubi_cd_form').find('input[name="image_png"]').val('');
         $('#ubi_cd_form').find('input[name="image_url"]').val('' + image_url_string);
         $('#ubi_cd_form').find('input[name="image_title"]').val('' + image_title);
-        $('#ubi_cd_form').submit();
+        $('#ubi_cd_form').find('input[name="whole_page"]').val('false');
+        send_form();
     };
 
     var run_cd_save_image_bitmap = function() {
@@ -1626,7 +1887,8 @@
         $('#ubi_cd_form').find('input[name="image_png"]').val('' + image_bitmap_string);
         $('#ubi_cd_form').find('input[name="image_url"]').val('' + image_url_string);
         $('#ubi_cd_form').find('input[name="image_title"]').val('' + image_title);
-        $('#ubi_cd_form').submit();
+        $('#ubi_cd_form').find('input[name="whole_page"]').val('false');
+        send_form();
     };
 
     var image_url_string = null;
@@ -1648,6 +1910,9 @@
         }
 
         $('img').bind('contextmenu', function(e) {
+            if (items_saved_shown) {
+                return true;
+            }
             if (!display_status) {
                 return true;
             }
@@ -1699,18 +1964,17 @@
 
             menu_html += '<div><li id="ubi_cd_img_menu_priority"><span id="ubi_cd_img_menu_priority_set" title=" urgency setting ">urgent priority</span>';
             var backlink_title = get_ubi_cd('backlink_text');
-            if (backlink_title) {
-                backlink_title = window._ubi_cd_utilities['html_escape_inner'](backlink_title);
-            }
             var backlink_url = get_ubi_cd('backlink_url');
             if (backlink_url) {
                 backlink_url = encodeURI(backlink_url);
             }
             if (backlink_title && backlink_url) {
-                menu_html += '&nbsp;<span id="ubi_cd_img_menu_backlink_text" title="' + backlink_title + '" target="_blank" ';
+                menu_html += '&nbsp;<span id="ubi_cd_img_menu_backlink_text" title="" target="_blank" ';
                 menu_html += ' href="' + backlink_url + '">@</span>';
             }
             menu_html += '</li></div>\n';
+
+            set_user_at_cd_title('ubi_cd_img_menu_backlink_text');
 
             setTimeout(function() {
                 $('#ubi_cd_img_menu_image_check').val(image_url_string);
