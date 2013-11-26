@@ -50,11 +50,11 @@ def take_ubi():
             if count_param in request.args:
                 count_value = str(request.args[count_param])
                 if 'true' == count_value.lower():
-                    session_count = str(mongo.db.snippets.find({'session': session_value}).count())
+                    session_count = str(mongo.db.snippets.find({'session_id': session_value}).count())
                     count_output = 'window._ubi_cd_runtime["session_count"] = ' + session_count + ';'
                     return (count_output, 200, {'Content-Type': 'application/javascript'})
 
-            cursor = mongo.db.snippets.find({'session': session_value}).sort([('created', -1)])
+            cursor = mongo.db.snippets.find({'session_id': session_value}).sort([('created', -1)])
             for entry in cursor:
                 entry['_id'] = str(entry['_id'])
                 entry['created'] = entry['created'].isoformat() if not None else None
@@ -104,9 +104,11 @@ def save_ubi():
 
     snippet = {}
     snippet['user_id'] = None;
+    snippet['bookmark_id'] = None;
     snippet['user_name'] = None;
-    snippet['session'] = None;
+    snippet['session_id'] = None;
     snippet['provider'] = None;
+    snippet['page_type'] = None;
     snippet['created'] = datetime.datetime.utcnow();
 
     for part in snippet:
@@ -123,7 +125,7 @@ def save_ubi():
     snippet_payload['image_url'] = None;
     snippet_payload['image_png'] = None;
 
-    snippet_payload_boolean = ['whole_page']
+    snippet_payload_boolean = ['page_info']
     for boolean_payload_part in snippet_payload_boolean:
         snippet_payload[boolean_payload_part] = False;
 
@@ -148,6 +150,7 @@ def save_ubi():
     snippet_other['page_title'] = None;
     snippet_other['comment'] = None;
     snippet_other['provider'] = None;
+    snippet_other['specific_id'] = None;
 
     for part in snippet_other:
         if part in request.form:
@@ -167,7 +170,7 @@ def save_ubi():
 
     snippet_other_json = {}
     snippet_other_json['ergonomy'] = None;
-    snippet_other_json['specific'] = None;
+    snippet_other_json['specific_info'] = None;
 
     for part in snippet_other_json:
         if part in request.form:

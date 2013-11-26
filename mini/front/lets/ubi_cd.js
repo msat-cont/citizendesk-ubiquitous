@@ -161,7 +161,6 @@
             }
         }
         else {
-            // hide the context menus!
             $('#ubi_cd_search_menu').hide();
             $('#ubi_cd_txt_menu').hide();
             $('#ubi_cd_img_menu').hide();
@@ -501,7 +500,7 @@
         $('#ubi_cd_form').find('input[name="image_png"]').val('');
         $('#ubi_cd_form').find('input[name="image_url"]').val('');
         $('#ubi_cd_form').find('input[name="image_title"]').val('');
-        $('#ubi_cd_form').find('input[name="whole_page"]').val('false');
+        $('#ubi_cd_form').find('input[name="page_info"]').val('false');
         send_form();
     };
 
@@ -570,14 +569,48 @@
         };
         $('#ubi_cd_form').find('input[name="ergonomy"]').val(JSON.stringify(ergonomy_data));
 
-        var specific_data = window._ubi_cd_sites['get_page_data']();
+        var page_type = 'general';
         try {
-            specific_data = JSON.stringify(specific_data);
+            if ('_ubi_cd_sites' in window) {
+                page_type = window._ubi_cd_sites['get_page_type']();
+            }
+            else {
+                page_type = 'general';
+            }
+        }
+        catch (exc) {
+            page_type = 'general';
+        }
+        $('#ubi_cd_form').find('input[name="page_type"]').val(page_type);
+
+        var specific_data = '';
+        try {
+            if ('_ubi_cd_sites' in window) {
+                specific_data = window._ubi_cd_sites['get_page_data']();
+                specific_data = JSON.stringify(specific_data);
+            }
+            else {
+                specific_data = '';
+            }
         }
         catch (exc) {
             specific_data = '';
         }
-        $('#ubi_cd_form').find('input[name="specific"]').val(specific_data);
+        $('#ubi_cd_form').find('input[name="specific_info"]').val(specific_data);
+
+        var specific_id = '';
+        try {
+            if ('_ubi_cd_sites' in window) {
+                specific_id = window._ubi_cd_sites['get_page_id']();
+            }
+            else {
+                specific_id = '';
+            }
+        }
+        catch (exc) {
+            specific_id = '';
+        }
+        $('#ubi_cd_form').find('input[name="specific_id"]').val(specific_id);
 
         $('#ubi_cd_form').find('input[name="page_title"]').val(document.title);
         $('#ubi_cd_form').find('input[name="provider"]').val(window.location.href);
@@ -594,11 +627,9 @@
                 data: save_data
             })
             .done(function() {
-                console.log('was success');
                 take_saved_count();
             })
             .fail(function() {
-                console.log('not success');
                 cors_works = false;
                 $('#ubi_cd_form').submit();
             });
@@ -615,7 +646,6 @@
         if ((!user_name) && (!backlink_text)) {
             return;
         }
-
 
         var title =  '';
 
@@ -660,7 +690,7 @@
 
         var params = {
             'text_snippet': '' + get_sel_text(),
-            'whole_page': 'false',
+            'page_info': 'false',
             'image_title': '',
             'image_url': '',
             'image_png': '',
@@ -669,11 +699,13 @@
             'bookmark_id': '' + get_ubi_cd('bookmark_id'),
             'user_id': '' + get_ubi_cd('user_id'),
             'user_name': '' + get_ubi_cd('user_name'),
-            'session': '' + page_session_id,
+            'session_id': '' + page_session_id,
             'page_title': document.title,
             'tags': '',
             'comment': '',
-            'specific': '',
+            'page_type': 'general',
+            'specific_id': '',
+            'specific_info': '',
             'provider': '' + window.location.href
         };
         form_params = params;
@@ -1298,7 +1330,7 @@
         $('#ubi_cd_form').find('input[name="image_png"]').val('');
         $('#ubi_cd_form').find('input[name="image_url"]').val('');
         $('#ubi_cd_form').find('input[name="image_title"]').val('');
-        $('#ubi_cd_form').find('input[name="whole_page"]').val('true');
+        $('#ubi_cd_form').find('input[name="page_info"]').val('true');
         send_form();
     };
 
@@ -1423,7 +1455,11 @@
             return;
         }
         try {
-            window._ubi_cd_sites['set_page_view']({'view_ids': page_info_elm_ids, 'view_retake': set_page_view_info});
+            window._ubi_cd_sites['set_page_view']({
+                'view_ids': page_info_elm_ids,
+                'view_retake': set_page_view_info,
+                'set_images': prepare_images
+            });
         } catch (exc) {}
 
     };
@@ -1877,7 +1913,7 @@
         $('#ubi_cd_form').find('input[name="image_png"]').val('');
         $('#ubi_cd_form').find('input[name="image_url"]').val('' + image_url_string);
         $('#ubi_cd_form').find('input[name="image_title"]').val('' + image_title);
-        $('#ubi_cd_form').find('input[name="whole_page"]').val('false');
+        $('#ubi_cd_form').find('input[name="page_info"]').val('false');
         send_form();
     };
 
@@ -1887,7 +1923,7 @@
         $('#ubi_cd_form').find('input[name="image_png"]').val('' + image_bitmap_string);
         $('#ubi_cd_form').find('input[name="image_url"]').val('' + image_url_string);
         $('#ubi_cd_form').find('input[name="image_title"]').val('' + image_title);
-        $('#ubi_cd_form').find('input[name="whole_page"]').val('false');
+        $('#ubi_cd_form').find('input[name="page_info"]').val('false');
         send_form();
     };
 
@@ -2091,9 +2127,6 @@
         init_bookmarklet();
     };
 
-
-
-
     var adjust_on_flash = function () {
         // if displayed in non-flash way, we probably do not need to change css
         // and if not on video page, it may be safe, to fix_flash there
@@ -2110,12 +2143,10 @@
         }
     };
 
-
-
     var setup_bookmarklet = function() {
         adjust_on_flash();
         prepare_images();
-        page_session_id = window._ubi_cd_utilities['make_random_string'](32);
+        page_session_id = window._ubi_cd_utilities['make_random_string'](40);
         make_form(get_ubi_cd('feed_url'));
         prepare_open(get_ubi_cd('feed_url'));
         prepare_tags();
