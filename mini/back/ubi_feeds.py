@@ -4,6 +4,8 @@ import datetime, json
 from flask import request, Blueprint
 from mdb import mongo_dbs, minicd_inner
 
+# how it would be if we started to use ES instead of MongoDB?
+
 MAX_IMG_SHOW_LEN = 100
 
 ubi_take = Blueprint('ubi_take', __name__)

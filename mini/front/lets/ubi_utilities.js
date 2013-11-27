@@ -1,5 +1,5 @@
 (function(){
-    if (typeof window._ubi_cd_runtime != 'object') {
+    if (typeof window._ubi_cd_runtime !== 'object') {
         return;
     }
     if (window._ubi_cd_runtime === null) {

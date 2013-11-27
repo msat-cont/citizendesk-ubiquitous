@@ -1,12 +1,12 @@
 (function(){
-    if (typeof window._ubi_cd_sites_specific != 'object') {
+    if (typeof window._ubi_cd_sites_specific !== 'object') {
         return;
     }
     if (window._ubi_cd_sites_specific === null) {
         return;
     }
 
-    var take_youtube_user_data = function(user_data) {
+    var youtube_user_take_data = function(user_data) {
         if ((typeof user_data !== 'object') || (!user_data)) {
             return null;
         }
@@ -14,7 +14,13 @@
         var use_data = {};
 
         var use_parts = {
+            'title': 'title',
+            'summary': 'summary',
+            'published': 'published',
+            'updated': 'updated',
             'user_id': 'yt$userId',
+            'user_name': 'yt$username',
+            'channel_id': 'yt$channelId',
             'google_plus_user_id': 'yt$googlePlusUserId',
             'thumbnail': 'media$thumbnail',
             'statistics': 'yt$statistics',
@@ -72,7 +78,7 @@
         return use_data;
     };
 
-    var take_youtube_video_data = function(video_data) {
+    var youtube_video_take_data = function(video_data) {
         if ((typeof video_data !== 'object') || (!video_data)) {
             return null;
         }
@@ -130,7 +136,7 @@
         return use_data;
     };
 
-    var update_youtube_info = function(video_data) {
+    var youtube_video_update_info = function(video_data) {
         var html_escape_inner = window._ubi_cd_utilities['html_escape_inner'];
         var get_show_title = window._ubi_cd_utilities['get_show_title'];
         var get_date_time_show = window._ubi_cd_utilities['get_date_time_show'];
@@ -139,18 +145,24 @@
             return;
         }
 
-        var video_id = get_youtube_video();
+        var video_id = youtube_video_get_id();
         if (video_data.id != video_id) {
             return;
         }
+        user_data = null;
 
-        set_page_specific_id(video_id);
+        outer_set_page_specific_id(video_id);
         try {
             // make sure the taken keys are valid for JSON
-            set_page_specific_data({'video': take_youtube_video_data(video_data)});
+            video_data = youtube_video_take_data(video_data);
         } catch (exc) {
-            set_page_specific_data({});
+            video_data = {'id': video_id};
         }
+        if (('uploader' in video_data) && video_data['uploader']) {
+            user_data = {'user_name': video_data['uploader']};
+        }
+
+        outer_set_page_specific_data({'video': video_data, 'user': user_data});
 
         var info = '';
         var video_part = null;
@@ -177,13 +189,13 @@
 
         info += '<table border="0">';
 
-        if ('title' in video_data) {
+        if (('title' in video_data) && video_data['title']) {
             var video_link = 'http://www.youtube.com/watch?v=' + encodeURIComponent(video_id);
             video_part = get_show_title(video_data['title'], 40);
             info += '<tr><td ' + video_part['title'] + ' align="right">title:&nbsp;</td><td ' + video_part['title'] + '><a href="' + video_link + '" target="_blank">' + video_part['show'] + '</a></td></tr>';
         }
 
-        if ('uploader' in video_data) {
+        if (('uploader' in video_data) && video_data['uploader']) {
             var user_link = 'http://www.youtube.com/user/' + encodeURIComponent(video_data['uploader']);
             video_part = get_show_title(video_data['uploader'], 40);
             info += '<tr><td id="ubi_cd_page_info_detail_youtube_uploader_label" ' + video_part['title'] + ' align="right">uploader:&nbsp;</td><td ' + video_part['title'] + '><a href="' + user_link + '" target="_blank"><span id="ubi_cd_page_info_detail_youtube_uploader" user_id="' + html_escape_inner(video_data['uploader']) + '">' + video_part['show'] + '</span></a></td></tr>';
@@ -198,42 +210,36 @@
                 }
 
                 var user_data = data.entry;
-                if ((!('author' in user_data)) || (!user_data.author)) {
-                    return;
-                }
-                var user_author_set = user_data.author;
-                var user_author = null;
-                if (user_author_set && user_author_set.length) {
-                    user_author = user_author_set[0];
-                }
-
-                if ((!('uri' in user_author)) || (!user_author.uri) || (!('$t' in user_author.uri)) || (!user_author.uri['$t'])) {
-                    return;
-                }
-                if (user_author.uri['$t'].indexOf(user_to_update) == -1) {
-                    return;
-                }
 
                 // check and change the ($t) keys so that they are valid for JSON
                 // take just the important data (id, uri, name/title, summary, ...)
-                var current_spec_data = get_page_specific_data();
                 try {
-                    current_spec_data['user'] = take_youtube_user_data(user_data);
+                    user_data = youtube_user_take_data(user_data);
                 }
                 catch (exc) {
-                    current_spec_data['user'] = {'user_id': user_to_update};
+                    return;
                 }
-                set_page_specific_data(current_spec_data);
+
+                if ((!('user_name' in user_data)) || (user_to_update != user_data['user_name'])) {
+                    return;
+                }
+
+                var current_spec_data = outer_get_page_specific_data();
+                if (!current_spec_data) {
+                    current_spec_data = {};
+                }
+                current_spec_data['user'] = user_data;
+                outer_set_page_specific_data(current_spec_data);
 
                 var user_title = '';
-                if (('title' in user_data) && (user_data.title) && ('$t' in user_data.title) && (user_data.title['$t'])) {
-                    user_title += user_data.title['$t'];
+                if (('title' in user_data) && (user_data.title)) {
+                    user_title += user_data.title;
                 }
-                if (('summary' in user_data) && (user_data.summary) && ('$t' in user_data.summary) && (user_data.summary['$t'])) {
+                if (('summary' in user_data) && (user_data.summary)) {
                     if (user_title) {
                         user_title += '\n\n';
                     }
-                    user_title += user_data.summary['$t'];
+                    user_title += user_data.summary;
                 }
 
                 if (user_title) {
@@ -244,18 +250,18 @@
 
         }
 
-        if ('category' in video_data) {
+        if (('category' in video_data) && video_data['category']) {
             video_part = get_show_title(video_data['category'], 40);
             info += '<tr><td ' + video_part['title'] + ' align="right">category:&nbsp;</td><td ' + video_part['title'] + '>' + video_part['show'] + '</td></tr>';
         }
 
-        if ('description' in video_data) {
+        if (('description' in video_data) && video_data['description']) {
             video_part = get_show_title(video_data['description'], 40);
             info += '<tr><td ' + video_part['title'] + ' align="right">description:&nbsp;</td><td ' + video_part['title'] + '>' + video_part['show'] + '</td></tr>';
         }
 
         info += '</table>';
-        $('#' + page_info_elm_ids['text']).html(info);
+        $('#' + outer_page_info_elm_ids['text']).html(info);
 
         var media = '';
 
@@ -268,101 +274,95 @@
             }
         }
 
-        $('#' + page_info_elm_ids['media']).html(media);
-        $('#' + page_info_elm_ids['media']).show();
+        $('#' + outer_page_info_elm_ids['media']).html(media);
+        $('#' + outer_page_info_elm_ids['media']).show();
 
-        page_set_images();
+        outer_page_set_images();
     };
 
-    var last_youtube_video_id = null;
-    var reload_youtube_video_info = function() {
-        last_youtube_video_id = null;
-
-        $(window).on('popstate', function(ev) {
-            reload_youtube_video_info();
-        });
-        $(document).click(function(){
-            setTimeout(function(ev) {
-                var check_video_id = get_youtube_video();
-
-                if (!check_video_id) {
-                    page_info_retake();
-                    return;
-                }
-
-                if (last_youtube_video_id == check_video_id) {
-                    return;
-                }
-
-                reload_youtube_video_info();
-            }, 1000);
-        });
-
-        var video_id = get_youtube_video();
-        if (!video_id) {
-            page_info_retake();
-            return;
+    var youtube_video_get_id = function() {
+        if (!document.location.host.match(/youtube\.(?:co\.|com\.)?[\w]{2,4}$/)) {
+            return null;
         }
-        last_youtube_video_id = video_id;
-
-        $.getJSON('//gdata.youtube.com/feeds/api/videos/' + encodeURIComponent(video_id) + '?v=2&alt=jsonc', function(data, status, xhr) {
-            if ((!data) || (!('data' in data)) || (!data.data)) {
-                return;
-            }
-            update_youtube_info(data.data);
-        });
-
-    };
-
-    var page_info_elm_ids = {};
-    var page_info_retake = null;
-    var page_set_images = null;
-    var set_page_type = null;
-    var set_page_specific_id = null;
-    var set_page_specific_data = null;
-    var get_page_specific_data = null;
-
-    var set_page_info_youtube = function(view_spec) {
-        page_info_elm_ids = view_spec['view_ids'];
-        page_info_retake = view_spec['view_retake'];
-        page_set_images = view_spec['set_images'];
-        set_page_type = view_spec['set_page_type'];
-        set_page_specific_id = view_spec['set_page_specific_id'];
-        set_page_specific_data = view_spec['set_page_specific_data'];
-        get_page_specific_data = view_spec['get_page_specific_data'];
-
-        set_page_type('youtube_video');
-        var video_id = get_youtube_video();
-
-        var html_escape = window._ubi_cd_utilities['html_escape'];
-        var page_top = 'type: youtube video (' + html_escape(video_id) + ')';
-        $('#' + page_info_elm_ids['top']).html(page_top);
-
-        reload_youtube_video_info();
-
-    };
-
-    var get_youtube_video = function() {
         var query_string = window._ubi_cd_utilities['get_query_string']();
         if (('v' in query_string) && query_string.v) {
             return query_string.v;
         }
+
+        var embed_match = document.location.pathname.match(/\/embed\/([\w]+)/);
+        if (embed_match && ('1' in embed_match)) {
+            return embed_match['1'];
+        }
+
         return null;
     };
 
-    var is_youtube_video = function() {
-        if (!document.location.href.match(/youtube.com/)) {
-            return false;
+    var youtube_video_page_type = 'youtube video';
+
+    var outer_page_info_elm_ids = {};
+    var outer_page_info_retake = null;
+    var outer_page_set_images = null;
+    var outer_get_page_specific_id = null;
+    var outer_set_page_specific_id = null;
+    var outer_get_page_specific_data = null;
+    var outer_set_page_specific_data = null;
+
+    var youtube_video_last_id = null;
+
+    var youtube_video_retake_all = function() {
+        youtube_video_last_id = null;
+        outer_page_info_retake();
+    };
+
+    var youtube_video_initialize = function(view_spec) {
+        youtube_video_last_id = null;
+
+        outer_page_info_elm_ids = view_spec['view_ids'];
+        outer_page_info_retake = view_spec['view_retake'];
+        outer_page_set_images = view_spec['set_images'];
+        outer_get_page_specific_id = view_spec['get_page_specific_id'];
+        outer_set_page_specific_id = view_spec['set_page_specific_id'];
+        outer_get_page_specific_data = view_spec['get_page_specific_data'];
+        outer_set_page_specific_data = view_spec['set_page_specific_data'];
+    };
+
+    var youtube_video_get_type = function() {
+        if (youtube_video_get_id()) {
+            return youtube_video_page_type;
         }
-        if (!get_youtube_video) {
-            return false;
+        return null;
+    };
+
+    var youtube_video_set_page_info = function() {
+
+        var video_id = youtube_video_get_id();
+        if (!video_id) {
+            youtube_video_retake_all();
+            return;
         }
-        return true;
+
+        if (youtube_video_last_id == video_id) {
+            return;
+        }
+        youtube_video_last_id = video_id;
+
+        var html_escape = window._ubi_cd_utilities['html_escape'];
+        var page_top = 'type: ' + youtube_video_page_type + ' (' + html_escape(video_id) + ')';
+        $('#' + outer_page_info_elm_ids['top']).html(page_top);
+
+        $.getJSON('//gdata.youtube.com/feeds/api/videos/' + encodeURIComponent(video_id) + '?v=2&alt=jsonc', function(data, status, xhr) {
+            if ((!data) || (!('data' in data)) || (typeof data !== 'object') || (!data.data)) {
+                return;
+            }
+            youtube_video_update_info(data.data);
+        });
+
     };
 
     window._ubi_cd_sites_specific.push({
-        'belongs': is_youtube_video,
-        'set_info': set_page_info_youtube
+        'initialize': youtube_video_initialize,
+        'get_type': youtube_video_get_type,
+        'set_info': youtube_video_set_page_info
     });
 
 })();
