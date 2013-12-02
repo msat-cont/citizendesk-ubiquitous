@@ -1,5 +1,6 @@
 (function(){
     var api_version = '0.3.0'
+    var $ = null;
 
     if (typeof window._ubi_cd_spec !== 'object') {
         return;
@@ -248,22 +249,24 @@
     };
 
     var start_loading = function() {
-        var v = '1.7.1';
-        if (window.jQuery === undefined || window.jQuery.fn.jquery < v) {
-            var done = false;
-            var script = document.createElement('script');
-            //script.src = '//ajax.googleapis.com/ajax/libs/jquery/' + v + '/jquery.min.js';
-            script.src = get_ubi_cd('jquery_url');
-            script.onload = script.onreadystatechange = function(){
-                if (!done && (!this.readyState || this.readyState == 'loaded' || this.readyState == 'complete')) {
-                    done = true;
-                    json2_loading();
-                }
-            };
-            document.getElementsByTagName('head')[0].appendChild(script);
-        } else {
-            json2_loading();
-        }
+        // load the jQuery in any case (whatever window.jQuery, window.jQuery.fn.jquery are),
+        // set it local with noConflict(true) call
+        var v = '1.7.2';
+        var src_default = '//ajax.googleapis.com/ajax/libs/jquery/' + v + '/jquery.min.js';
+        var src_ubi = get_ubi_cd('jquery_url');
+
+        var done = false;
+        var script = document.createElement('script');
+        script.src = (src_ubi) ? src_ubi : src_default;
+        script.onload = script.onreadystatechange = function() {
+            if (!done && (!this.readyState || this.readyState == 'loaded' || this.readyState == 'complete')) {
+                done = true;
+                $ = jQuery.noConflict(true);
+                set_ubi_cd_runtime('local_jquery', $);
+                json2_loading();
+            }
+        };
+        document.getElementsByTagName('head')[0].appendChild(script);
     };
 
     var json2_loading = function() {
@@ -277,7 +280,7 @@
         var script = document.createElement('script');
         //script.src = '//cdn.jsdelivr.net/json2/0.1/json2.min.js;
         script.src = json2_url;
-        script.onload = script.onreadystatechange = function(){
+        script.onload = script.onreadystatechange = function() {
             if (!done && (!this.readyState || this.readyState == 'loaded' || this.readyState == 'complete')) {
                 done = true;
                 init_localization();
@@ -290,7 +293,7 @@
         var done = false;
         var script = document.createElement('script');
         script.src = setup_url;
-        script.onload = script.onreadystatechange = function(){
+        script.onload = script.onreadystatechange = function() {
             if (!done && (!this.readyState || this.readyState == 'loaded' || this.readyState == 'complete')) {
                 done = true;
                 internalize_vars('localization');
@@ -304,7 +307,7 @@
         var done = false;
         var script = document.createElement('script');
         script.src = base_url + '?feed=' + feed_name;
-        script.onload = script.onreadystatechange = function(){
+        script.onload = script.onreadystatechange = function() {
             if (!done && (!this.readyState || this.readyState == 'loaded' || this.readyState == 'complete')) {
                 done = true;
                 internalize_vars('feeds');
@@ -318,7 +321,7 @@
         var done = false;
         var script = document.createElement('script');
         script.src = file_to_load;
-        script.onload = script.onreadystatechange = function(){
+        script.onload = script.onreadystatechange = function() {
             if (!done && (!this.readyState || this.readyState == 'loaded' || this.readyState == 'complete')) {
                 done = true;
                 next_action();
@@ -428,6 +431,7 @@
     var set_search_plugin = function() {
         // this jQuery highlighting addon is based on
         // http://johannburkard.de/resources/Johann/jquery.highlight-4.js
+        var jQuery = $;
 
         jQuery.fn.highlight = function(pat) {
             function innerHighlight(node, pat) {
@@ -957,20 +961,19 @@
                 var cur_base_url = get_ubi_cd('feed_url');
                 var cur_bookmark_id = get_ubi_cd('bookmark_id');
 
-                if ((use_base_url != cur_base_url) || (use_bookmark_id != cur_bookmark_id)) {
-                    use_base_url = cur_base_url;
-                    use_bookmark_id = cur_bookmark_id;
+                use_base_url = cur_base_url;
+                use_bookmark_id = cur_bookmark_id;
 
-                    var bookmark_part = encodeURIComponent(use_bookmark_id);
-                    var session_part = encodeURIComponent(page_session_id);
+                var bookmark_part = encodeURIComponent(use_bookmark_id);
+                var session_part = encodeURIComponent(page_session_id);
 
-                    var commit_url = use_base_url + '?bookmark=' + bookmark_part + '&session=' + session_part;
-                    var saved_view_outer = '<iframe border="0" frameBorder="0" seamless="seamless" hspace="0" vspace="0" marginheight="0" marginwidth="0" width="100%" height="100%" id="ubi_cd_saved_view_iframe" src="' + window._ubi_cd_utilities['html_escape_inner'](commit_url) + '">&nbsp;</iframe>';
+                var commit_url = use_base_url + '?bookmark=' + bookmark_part + '&session=' + session_part;
+                var saved_view_outer = '<iframe border="0" frameBorder="0" seamless="seamless" hspace="0" vspace="0" marginheight="0" marginwidth="0" width="100%" height="100%" id="ubi_cd_saved_view_iframe" src="' + window._ubi_cd_utilities['html_escape_inner'](commit_url) + '">&nbsp;</iframe>';
 
-                    $(savedView).html(saved_view_outer);
-                }
+                $(savedView).html(saved_view_outer);
 
                 setTimeout(function() {
+                    update_show_saved_size();
                     $(savedView).show();
                     $(savedViewClose).show();
                 }, 1);
@@ -990,25 +993,36 @@
         document.body.appendChild(savedViewClose);
 
         $(window).on('resize', function() {
-            var new_saved_view_close_left = ($(window).width() - 60);
-            if (new_saved_view_close_left < min_saved_view_close_left) {
-                new_saved_view_close_left = min_saved_view_close_left;
-            }
-
-            var new_saved_view_width = ($(window).width() - 20);
-            var new_saved_view_height = ($(window).height() - 20);
-            if (new_saved_view_width < min_saved_view_width) {
-                new_saved_view_width = min_saved_view_width;
-            }
-            if (new_saved_view_height < min_saved_view_height) {
-                new_saved_view_height = min_saved_view_height;
-            }
-
-            $(savedViewClose).css('left', '' + new_saved_view_close_left + 'px');
-            $(savedView).css('width', '' + new_saved_view_width + 'px');
-            $(savedView).css('height', '' + new_saved_view_height + 'px');
+            update_show_saved_size();
         });
 
+    };
+
+    var update_show_saved_size = function() {
+        var min_saved_view_close_left = 20;
+
+        var new_saved_view_close_left = ($(window).width() - 60);
+        if (new_saved_view_close_left < min_saved_view_close_left) {
+            new_saved_view_close_left = min_saved_view_close_left;
+        }
+
+        var min_saved_view_width = 200;
+        var min_saved_view_height = 200;
+        var saved_view_subs = window._ubi_cd_ux['saved_view_subs']();
+
+        var new_saved_view_width = ($(window).width() - saved_view_subs['width']);
+        var new_saved_view_height = ($(window).height() - saved_view_subs['height']);
+
+        if (new_saved_view_width < min_saved_view_width) {
+            new_saved_view_width = min_saved_view_width;
+        }
+        if (new_saved_view_height < min_saved_view_height) {
+            new_saved_view_height = min_saved_view_height;
+        }
+
+        $('#ubi_cd_saved_view_close').css('left', '' + new_saved_view_close_left + 'px');
+        $('#ubi_cd_saved_view').css('width', '' + new_saved_view_width + 'px');
+        $('#ubi_cd_saved_view').css('height', '' + new_saved_view_height + 'px');
     };
 
     var tags_shown = false;
@@ -2140,9 +2154,9 @@
         is_updating = false;
     };
 
-    var back_cols;
-    var button_css;
-    var text_unselect_css;
+    var back_cols = null;
+    var button_css = null;
+    var text_unselect_css = null;
 
     var other_files_to_load = [get_ubi_cd('utilities_url'), get_ubi_cd('ux_url'), get_ubi_cd('sites_url')];
     var other_files_to_load_index = 0;
@@ -2172,6 +2186,3 @@
     start_loading();
 
 })();
-// load the jQuery in any case, with noConflict(true) call
-// into localization: strings with (some form of) ids, and date-time formatting
-// put css defs into the ux js file

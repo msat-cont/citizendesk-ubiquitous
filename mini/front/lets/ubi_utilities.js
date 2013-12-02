@@ -5,6 +5,17 @@
     if (window._ubi_cd_runtime === null) {
         return;
     }
+    if (!('local_jquery' in window._ubi_cd_runtime)) {
+        return;
+    }
+    var $ = window._ubi_cd_runtime['local_jquery'];
+
+    if (typeof window._ubi_cd_runtime !== 'object') {
+        return;
+    }
+    if (window._ubi_cd_runtime === null) {
+        return;
+    }
     if (window._ubi_cd_runtime['is_utilities_started']) {
         return;
     }
@@ -184,6 +195,8 @@
     // http://blogs.msdn.com/b/ieinternals/archive/2010/05/13/xdomainrequest-restrictions-limitations-and-workarounds.aspx
     // https://github.com/jaubourg/ajaxHooks/blob/master/src/xdr.js
     var cors_for_old_msie = function() {
+        var jQuery = $;
+
         if ( window.XDomainRequest ) {
             jQuery.ajaxTransport(function( s ) {
                 if ( s.crossDomain && s.async ) {

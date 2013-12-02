@@ -197,6 +197,31 @@ def save_ubi():
             return 'wrong tags part, not correct json', 404
     snippet[tags_param] = tags_value
 
+    if 'ergonomy' not in snippet:
+        snippet['ergonomy'] = {}
+    if type(snippet['ergonomy']) != dict:
+        snippet['ergonomy'] = {}
+
+    snippet['ergonomy']['user_agent'] = None
+    for cur_header in request.headers:
+        if (1 < len(cur_header)) and cur_header[0] and ('user-agent' == cur_header[0].lower()):
+            snippet['ergonomy']['user_agent'] = cur_header[1]
+            break
+
+    snippet['remote_ip'] = None
+    rem_ip_src = ['x-forwarded-for', 'x-real-ip']
+    for header_test in rem_ip_src:
+        got_ip = False
+        for cur_header in request.headers:
+            if (1 < len(cur_header)) and cur_header[0] and (header_test == cur_header[0].lower()):
+                snippet['remote_ip'] = cur_header[1]
+                got_ip = True
+                break
+        if got_ip:
+            break
+    if not snippet['remote_ip']:
+        snippet['remote_ip'] = request.remote_addr
+
     snippet_id = mongo.db.snippets.insert(snippet)
 
     return (str(snippet_id), 200, headers)

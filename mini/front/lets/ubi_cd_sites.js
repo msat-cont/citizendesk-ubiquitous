@@ -5,6 +5,11 @@
     if (window._ubi_cd_runtime === null) {
         return;
     }
+    if (!('local_jquery' in window._ubi_cd_runtime)) {
+        return;
+    }
+    var $ = window._ubi_cd_runtime['local_jquery'];
+
     if (window._ubi_cd_runtime['is_sites_started']) {
         return;
     }
