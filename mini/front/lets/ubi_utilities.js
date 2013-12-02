@@ -66,9 +66,10 @@
 
     var fix_flash = function() {
         // loop through every embed tag on the site
+        var i;
         var embeds = document.getElementsByTagName('embed');
         for (i = 0; i < embeds.length; i++) {
-            embed = embeds[i];
+            var embed = embeds[i];
             var new_embed;
             // everything but Firefox & Konqueror
             if (embed.outerHTML) {
@@ -93,7 +94,7 @@
         // loop through every object tag on the site
         var objects = document.getElementsByTagName('object');
         for (i = 0; i < objects.length; i++) {
-            object = objects[i];
+            var object = objects[i];
             var new_object;
             // object is an IE specific tag so we can use outerHTML here
             if (object.outerHTML) {
@@ -106,7 +107,7 @@
                     new_object = html.replace(/<\/object\>/i, "<param name='wmode' value='transparent' />\n</object>");
                 // loop through each of the param tags
                 var children = object.childNodes;
-                for (j = 0; j < children.length; j++) {
+                for (var j = 0; j < children.length; j++) {
                     try {
                         if (children[j] != null) {
                             var theName = children[j].getAttribute('name');

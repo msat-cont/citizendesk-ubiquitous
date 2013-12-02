@@ -306,6 +306,7 @@
     var outer_set_page_specific_id = null;
     var outer_get_page_specific_data = null;
     var outer_set_page_specific_data = null;
+    var outer_ubi_props = null;
 
     var youtube_video_last_id = null;
 
@@ -324,6 +325,7 @@
         outer_set_page_specific_id = view_spec['set_page_specific_id'];
         outer_get_page_specific_data = view_spec['get_page_specific_data'];
         outer_set_page_specific_data = view_spec['set_page_specific_data'];
+        outer_ubi_props = view_spec['get_ubi_props'];
     };
 
     var youtube_video_get_type = function() {
@@ -334,6 +336,8 @@
     };
 
     var youtube_video_set_page_info = function() {
+        var video_update_safe = window._ubi_cd_ux['video_update_safe'];
+        var local_props = window._ubi_cd_localization['get'];
 
         var video_id = youtube_video_get_id();
         if (!video_id) {
@@ -344,6 +348,13 @@
         if (youtube_video_last_id == video_id) {
             return;
         }
+        if (youtube_video_last_id && (!video_update_safe())) {
+            if (outer_ubi_props('warn_leave')) {
+                window.onbeforeunload = function(e) {return local_props('leaving_question_video_update');};
+            }
+            window.location.reload(false);
+        }
+
         youtube_video_last_id = video_id;
 
         var html_escape = window._ubi_cd_utilities['html_escape'];

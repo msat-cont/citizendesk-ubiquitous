@@ -65,22 +65,21 @@
     var ubi_els_class_name = 'ubi_cd_part';
 
     var page_session_id = null;
-    var leaving_question = 'Wanna leave the page?';
 
     var update_strings = function() {
-        // should deal with display languages at some point
-/*
-        get_ubi_cd('user_name');
-        get_ubi_cd('feed_name');
-        get_ubi_cd('feed_language');
-        get_ubi_cd('backlink_text');
-        get_ubi_cd('backlink_url');
-*/
+        var use_lang = get_ubi_cd('local_language');
 
+        window._ubi_cd_localization['lang'](use_lang);
+
+        // utilize the localization strings, once we have some
         return;
     };
 
     var switch_site_info = function(state) {
+        if (!window._ubi_cd_ux['safe_to_pause']()) {
+            return;
+        }
+
         if (typeof state === 'undefined') {
             return;
         }
@@ -115,7 +114,7 @@
         $('#ubi_cd_page_info').show();
         $('#ubi_cd_find_terms').show();
         if (get_ubi_cd('warn_leave')) {
-            window.onbeforeunload = function() {return leaving_question;};
+            window.onbeforeunload = function(e) {return local_string('leaving_question');};
         }
         is_updating = false;
     };
@@ -139,7 +138,7 @@
                 'user_name': get_ubi_cd('user_name'),
                 'feed_url': get_ubi_cd('feed_url'),
                 'feed_name': get_ubi_cd('feed_name'),
-                'feed_language': get_ubi_cd('feed_language'),
+                'local_language': get_ubi_cd('local_language'),
                 'backlink_text': get_ubi_cd('backlink_text'),
                 'backlink_url': get_ubi_cd('backlink_url'),
                 'warn_leave': get_ubi_cd('warn_leave')
@@ -158,7 +157,7 @@
             set_ubi_cd('bookmark_id', use_options['bookmark_id']);
             set_ubi_cd('user_id', use_options['user_id']);
             set_ubi_cd('user_name', use_options['user_name']);
-            set_ubi_cd('feed_language', use_options['feed_language']);
+            set_ubi_cd('local_language', use_options['local_language']);
             set_ubi_cd('backlink_text', use_options['backlink_text']);
             set_ubi_cd('backlink_url', use_options['backlink_url']);
 
@@ -231,53 +230,6 @@
         if ((typeof update_view !== 'undefined') && update_view) {
             update_search_view();
         }
-    };
-
-    var css_margin_prev_next = '0px';
-    if (navigator.userAgent.toLowerCase().indexOf('webkit') > -1) {
-        css_margin_prev_next = '5px';
-    }
-
-    var back_cols = {
-        'button_std': 'rgb(220, 220, 240)',
-        'button_dis': 'silver',
-        'term_found': 'yellow',
-        'term_found_active': 'gold',
-        'saved_view': '#f0f0f0',
-        'saved_view_iframe': '#f0a020',
-        'context_menu': '#ddd'
-    };
-
-    var button_css = {
-        'padding': '5px',
-        'box-shadow': '1px 1px 1px 1px #ccc',
-        'background-color': back_cols['button_std'],
-        'color': 'rgb(0, 0, 0)',
-        'border': '1px solid rgb(0, 0, 0)',
-        'border-radius': '5px',
-        'margin-top': '5px',
-        'margin-bottom': '5px',
-        'font-size': '17px',
-        'line-height': '1',
-        'text-align': 'center',
-        'font-family': 'Helvetica,Arial,sans-serif',
-        'text-decoration': 'none',
-        'cursor': 'pointer',
-        '-moz-box-sizing': 'padding-box'
-    };
-
-    var button_css_flash = {
-        'box-shadow': '0px 0px 0px 0px #ccc',
-        'border': '2px solid rgb(150, 150, 150)',
-        'border-radius': '0px'
-    };
-
-    var text_unselect_css = {
-        '-moz-user-select': 'none',
-        '-khtml-user-select': 'none',
-        '-webkit-user-select': 'none',
-        '-ms-user-select': 'none',
-        'user-select': 'none'
     };
 
     var start_loading = function() {
@@ -1480,6 +1432,7 @@
         }
         try {
             window._ubi_cd_sites['set_page_view']({
+                'ubi_props': get_ubi_cd,
                 'view_ids': page_info_elm_ids,
                 'view_retake': set_page_view_info,
                 'set_images': prepare_images
@@ -1767,7 +1720,7 @@
         $(findNext).css('padding-left', '2px');
         $(findNext).css('padding-right', '2px');
         $(findNext).css('vertical-align', 'middle');
-        $(findNext).css('margin-left', css_margin_prev_next);
+        $(findNext).css('margin-left', window._ubi_cd_ux['margin_prev_next']());
 
         $(findPrev).css('position', 'fixed');
         $(findPrev).css('top', '138px');
@@ -2141,31 +2094,18 @@
         }
     };
 
+    var local_string = null;
+
     var setup_localization = function() {
-        // utilize the localization strings, once we have some
+        local_string = window._ubi_cd_localization['get'];
+
         update_strings();
 
         init_bookmarklet();
     };
 
-    var adjust_on_flash = function () {
-        // if displayed in non-flash way, we probably do not need to change css
-        // and if not on video page, it may be safe, to fix_flash there
-        // and what about othe video sites, like vimeo?
-        // and may be some underlaying (slightly greater) div could shield it,
-        // i.e. without css changes; just with adding those underlaying divs.
-        if (window.location.href.toLowerCase().indexOf('youtube.') > -1) {
-            for (var css_property in button_css_flash) {
-                button_css[css_property] = button_css_flash[css_property];
-            }
-        }
-        else {
-            window._ubi_cd_utilities['fix_flash']();
-        }
-    };
-
     var setup_bookmarklet = function() {
-        adjust_on_flash();
+        window._ubi_cd_ux['adjust_on_flash']();
         prepare_images();
         page_session_id = window._ubi_cd_utilities['make_random_string'](40);
         make_form(get_ubi_cd('feed_url'));
@@ -2175,14 +2115,18 @@
         set_search_plugin();
         prepare_search();
         if (get_ubi_cd('warn_leave')) {
-            window.onbeforeunload = function() {return leaving_question;};
+            window.onbeforeunload = function(e) {return local_string('leaving_question');};
         }
 
         set_ubi_cd_runtime('is_initialized', true);
         is_updating = false;
     };
 
-    var other_files_to_load = [get_ubi_cd('utilities_url'), get_ubi_cd('sites_url'), get_ubi_cd('css_url')];
+    var back_cols;
+    var button_css;
+    var text_unselect_css;
+
+    var other_files_to_load = [get_ubi_cd('utilities_url'), get_ubi_cd('ux_url'), get_ubi_cd('sites_url')];
     var other_files_to_load_index = 0;
     var take_other_files = function() {
         if (other_files_to_load_index < other_files_to_load.length) {
@@ -2191,6 +2135,10 @@
             load_other_files(cur_file_to_load, take_other_files);
             return;
         }
+
+        back_cols = window._ubi_cd_ux['back_cols']();
+        button_css = window._ubi_cd_ux['button_css']();
+        text_unselect_css = window._ubi_cd_ux['text_unselect_css']();
 
         setup_bookmarklet();
     };
@@ -2206,9 +2154,8 @@
     start_loading();
 
 })();
-// load the JQuery in any case, with noConflict(true) call
+// load the jQuery in any case, with noConflict(true) call
 // reset bookmark_id/session_id, etc. and button title infos (incl. saved info) on feed switches
 
 // into localization: strings with (some form of) ids, and date-time formatting
-// put css defs into one more another (js) file
-// make the (flash-related) fixes in the css file initialization
+// put css defs into the ux js file

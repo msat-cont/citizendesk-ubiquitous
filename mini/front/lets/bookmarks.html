@@ -37,7 +37,7 @@ window.update_link = function(silent) {
         cur_warn = 'true';
     }
 
-    var lang_elm = document.getElementById('feed_language');
+    var lang_elm = document.getElementById('local_language');
     var lang_info = lang_elm.options[lang_elm.selectedIndex];
     var cur_lang = lang_info.value;
 
@@ -56,8 +56,8 @@ window.update_link = function(silent) {
 
     var cur_ubi_cd_sites = $('#ubi_cd_sites').val();
     var cur_ubi_cd_sites_ssl = $('#ubi_cd_sites_ssl').val();
-    var cur_ubi_cd_css = $('#ubi_cd_css').val();
-    var cur_ubi_cd_css_ssl = $('#ubi_cd_css_ssl').val();
+    var cur_ubi_cd_ux = $('#ubi_cd_ux').val();
+    var cur_ubi_cd_ux_ssl = $('#ubi_cd_ux_ssl').val();
 
     var cur_jquery_url = $('#jquery_url').val();
     var cur_jquery_url_ssl = $('#jquery_url_ssl').val();
@@ -69,7 +69,7 @@ window.update_link = function(silent) {
     var cur_unique_id = $('#unique_id').val();
 
     var in_vals = [cur_user_name, cur_feed, cur_lang, cur_api_version, cur_unique_id, cur_backlink_text, cur_backlink_url, cur_data_url, cur_data_url_ssl,
-                  cur_ubi_cd_sites, cur_ubi_cd_sites_ssl, cur_ubi_cd_css, cur_ubi_cd_css_ssl, cur_utils_url, cur_utils_url_ssl, cur_bookmark_id,
+                  cur_ubi_cd_sites, cur_ubi_cd_sites_ssl, cur_ubi_cd_ux, cur_ubi_cd_ux_ssl, cur_utils_url, cur_utils_url_ssl, cur_bookmark_id,
                   cur_ubi_cd_url, cur_ubi_cd_url_ssl, cur_local_url, cur_local_url_ssl, cur_jquery_url, cur_jquery_url_ssl, cur_json2_url, cur_json2_url_ssl];
     var in_vals_count = in_vals.length;
     for (var ind=0; ind<in_vals_count; ind++) {
@@ -98,14 +98,14 @@ window.update_link = function(silent) {
     bml_link += "'bookmark_id':'" + cur_bookmark_id + "',";
     bml_link += "'user_name':'" + cur_user_name + "',";
     bml_link += "'feed_name':'" + cur_feed + "',";
-    bml_link += "'feed_language':'" + cur_lang + "',";
+    bml_link += "'local_language':'" + cur_lang + "',";
     bml_link += "'feed_url':(('https:'==document.location.protocol)?'" + cur_data_url_ssl + "':'" + cur_data_url + "'),";
     bml_link += "'backlink_text':'" + cur_backlink_text + "',";
     bml_link += "'backlink_url':'" + cur_backlink_url + "',";
     bml_link += "'localization_url':(('https:'==document.location.protocol)?'" + cur_local_url_ssl + "':'" + cur_local_url + "'),";
     bml_link += "'utilities_url':(('https:'==document.location.protocol)?'" + cur_utils_url_ssl + "':'" + cur_utils_url + "'),";
     bml_link += "'sites_url':(('https:'==document.location.protocol)?'" + cur_ubi_cd_sites_ssl + "':'" + cur_ubi_cd_sites + "'),";
-    bml_link += "'css_url':(('https:'==document.location.protocol)?'" + cur_ubi_cd_css_ssl + "':'" + cur_ubi_cd_css + "'),";
+    bml_link += "'ux_url':(('https:'==document.location.protocol)?'" + cur_ubi_cd_ux_ssl + "':'" + cur_ubi_cd_ux + "'),";
     bml_link += "'jquery_url':(('https:'==document.location.protocol)?'" + cur_jquery_url_ssl + "':'" + cur_jquery_url + "'),";
     bml_link += "'json2_url':(('https:'==document.location.protocol)?'" + cur_json2_url_ssl + "':'" + cur_json2_url + "'),";
     bml_link += "'warn_leave':" + cur_warn;
@@ -158,7 +158,7 @@ Fill in your user name:
 <br />
 <input id="feed_name" title="feed name" class="input_field" type="text" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="test"></input>
 <br />
-<select id="feed_language" name="feed_language">
+<select id="local_language" name="local_language">
   <option value="cz">Czech</option>
   <option value="de">Deutsch</option>
   <option value="en" selected="selected">English</option>
@@ -195,9 +195,9 @@ Fill in your user name:
 <br />
 <input id="ubi_cd_sites_ssl" title="Ubi-CD sites url / ssl" class="input_field" type="text" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="https://localhost/cd/static/lets/ubi_cd_sites.js"></input>
 <br />
-<input id="ubi_cd_css" title="Ubi-CD CSS url" class="input_field" type="text" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="http://localhost/cd/static/lets/ubi_cd_css.js"></input>
+<input id="ubi_cd_ux" title="Ubi-CD look-n-feel url" class="input_field" type="text" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="http://localhost/cd/static/lets/ubi_cd_ux.js"></input>
 <br />
-<input id="ubi_cd_css_ssl" title="Ubi-CD CSS url / ssl" class="input_field" type="text" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="https://localhost/cd/static/lets/ubi_cd_css.js"></input>
+<input id="ubi_cd_ux_ssl" title="Ubi-CD look-n-feel url / ssl" class="input_field" type="text" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="https://localhost/cd/static/lets/ubi_cd_ux.js"></input>
 
 <br />
 <input id="jquery_url" title="jQuery url" type="text" class="input_field" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="http://localhost/cd/static/lets/jquery.min.js"></input>

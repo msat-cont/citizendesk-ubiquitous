@@ -125,6 +125,7 @@
         page_info_retake();
     };
 
+    var general_ubi_props = null;
     var page_info_elm_ids = {};
     var page_info_retake = null;
     var page_set_images = null;
@@ -132,9 +133,11 @@
     var set_page_particular_info = function(view_spec) {
         nullify_page_info();
 
+        general_ubi_props = view_spec['ubi_props'];
         page_info_elm_ids = view_spec['view_ids'];
         page_info_retake = view_spec['view_retake'];
         page_set_images = view_spec['set_images'];
+        spec_out['get_ubi_props'] = general_ubi_props;
         spec_out['view_ids'] = page_info_elm_ids;
         spec_out['view_retake'] = page_info_retake_inner;
         spec_out['set_images'] = page_set_images;
@@ -174,12 +177,13 @@
             try {
                 var test_type = cur_spec['get_type']();
                 if (test_type) {
-                    last_page_type = test_type;
+                    last_page_type = page_type = test_type;
                     cur_spec['set_info']();
                     is_specific = true;
                 }
             }
             catch (exc) {
+                page_type = page_type_general;
                 last_page_type = null;
                 is_specific = false;
                 continue;
@@ -187,8 +191,7 @@
         }
 
         if (!is_specific) {
-            page_type = page_type_general;
-            last_page_type = page_type;
+            last_page_type = page_type = page_type_general;
             set_page_info_general();
         }
 
@@ -306,7 +309,7 @@
             }
             setTimeout(function(ev) {
                 check_site_changed();
-            }, 1000);
+            }, 500);
         });
         
     };
