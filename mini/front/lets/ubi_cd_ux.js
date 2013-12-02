@@ -22,6 +22,15 @@
     };
     window._ubi_cd_ux['margin_prev_next'] = get_css_margin_prev_next;
 
+    var css_saved_view_subs = {'width': 20, 'height': 20};
+    if (navigator.userAgent.toLowerCase().indexOf('webkit') > -1) {
+        css_saved_view_subs = {'width': 30, 'height': 30};
+    }
+    var get_css_saved_view_subs = function() {
+        return css_saved_view_subs;
+    };
+    window._ubi_cd_ux['saved_view_subs'] = get_css_saved_view_subs;
+
     var text_unselect_css = {
         '-moz-user-select': 'none',
         '-khtml-user-select': 'none',

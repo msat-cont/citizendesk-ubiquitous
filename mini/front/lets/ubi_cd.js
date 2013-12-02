@@ -71,8 +71,21 @@
 
         window._ubi_cd_localization['lang'](use_lang);
 
-        // utilize the localization strings, once we have some
+        // utilize the localized strings, once we have some
         return;
+    };
+
+    var update_feed_titles = function() {
+        // contextmenu titles are recreated automatically
+
+        // page info titles
+        set_user_at_cd_title('ubi_cd_page_info_backlink_text');
+        setTimeout(function() {
+            $('#ubi_cd_page_info_save').attr('title', ' saving into feed: ' + get_ubi_cd('feed_name') + ' ');
+        }, 10);
+
+        // saved parts title
+        setTimeout(function(){ take_saved_count(); }, 10);
     };
 
     var switch_site_info = function(state) {
@@ -103,6 +116,7 @@
 
     var finish_switch_on = function(reload_tags) {
         update_strings();
+        update_feed_titles();
         update_search_view();
 
         if (reload_tags) {
@@ -167,16 +181,17 @@
             $('#ubi_cd_form').find('input[name="user_name"]').val('' + get_ubi_cd('user_name'));
 
             var feed_differs = false;
-            if (get_ubi_cd('feed_url') != use_options['feed_url']) {
-                feed_differs = true;
-            }
             if (get_ubi_cd('feed_name') != use_options['feed_name']) {
                 feed_differs = true;
+                set_ubi_cd('feed_name', use_options['feed_name']);
+            }
+            if (get_ubi_cd('feed_url') != use_options['feed_url']) {
+                feed_differs = true;
+                set_ubi_cd('feed_url', use_options['feed_url']);
+                update_form_actions();
             }
 
             if (feed_differs) {
-                set_ubi_cd('feed_url', use_options['feed_url']);
-                set_ubi_cd('feed_name', use_options['feed_name']);
                 load_feed(get_ubi_cd('feed_url'), get_ubi_cd('feed_name'), function() {finish_switch_on(true);});
             }
             else {
@@ -481,7 +496,8 @@
     };
 
     var take_saved_count = function() {
-        var count_url = get_ubi_cd('feed_url') + '?count=true&bookmark=' + encodeURIComponent(get_ubi_cd('bookmark_id')) + '&session=' + encodeURIComponent(page_session_id);
+        var random_part = encodeURIComponent(window._ubi_cd_utilities['make_random_string'](40));
+        var count_url = get_ubi_cd('feed_url') + '?count_only=true&bookmark=' + encodeURIComponent(get_ubi_cd('bookmark_id')) + '&session=' + encodeURIComponent(page_session_id) + '&randomize=' + random_part;
 
         load_other_files(count_url, function() {
             items_saved_count = get_ubi_cd_runtime('session_count');
@@ -640,9 +656,14 @@
         }, 10);
     };
 
+    var update_form_actions = function() {
+        var base_url = get_ubi_cd('feed_url');
+        // no need for updating the src of the enveloping iframe
+        $('#ubi_cd_form').attr('action', base_url);
+    };
+
     var form_params = {};
     var make_form = function(base_url) {
-        form_url = base_url;
 
         var menu = document.createElement('div');
         menu.setAttribute('id', 'ubi_cd_txt_menu');
@@ -836,13 +857,6 @@
     var items_saved_shown = false;
     var items_saved_count = 0;
     var prepare_open = function(base_url) {
-        var form = document.createElement('form');
-        form.setAttribute('id', 'ubi_cd_open');
-        form.className = ubi_els_class_name;
-        form.setAttribute('method', 'get');
-        form.setAttribute('action', base_url + '?ref=' + page_session_id);
-        form.setAttribute('target', '_blank');
-
         var sessionButton = document.createElement('div');
         sessionButton.setAttribute('id', 'ubi_cd_page_session');
         sessionButton.setAttribute('unselectable', 'on');
@@ -851,8 +865,6 @@
         setTimeout(function(){ take_saved_count(); }, 10);
 
         $(sessionButton).html('saved parts');
-
-        $(form).css('display', 'none');
 
         $(sessionButton).css('width', '125px');
         $(sessionButton).css('position', 'fixed');
@@ -916,8 +928,9 @@
 
         var min_saved_view_width = 200;
         var min_saved_view_height = 200;
-        var set_saved_view_width = ($(window).width() - 20);
-        var set_saved_view_height = ($(window).height() - 20);
+        var saved_view_subs = window._ubi_cd_ux['saved_view_subs']();
+        var set_saved_view_width = ($(window).width() - saved_view_subs['width']);
+        var set_saved_view_height = ($(window).height() - saved_view_subs['height']);
         if (set_saved_view_width < min_saved_view_width) {
             set_saved_view_width = min_saved_view_width;
         }
@@ -934,23 +947,33 @@
         $(savedView).css('display', 'none');
         $(savedView).css('cursor', 'default');
 
-        var bookmark_part = encodeURIComponent(get_ubi_cd('bookmark_id'));
-        var session_part = encodeURIComponent(page_session_id);
-
-        var commit_url = base_url + '?bookmark=' + bookmark_part + '&session=' + session_part;
-
-        var saved_view_outer = '<iframe border="0" frameBorder="0" seamless="seamless" hspace="0" vspace="0" marginheight="0" marginwidth="0" width="100%" height="100%" id="ubi_cd_saved_view_iframe" src="' + window._ubi_cd_utilities['html_escape_inner'](commit_url) + '">&nbsp;</iframe>';
-
-        $(savedView).html(saved_view_outer);
+        var use_base_url = null;
+        var use_bookmark_id = null;
 
         $(sessionButton).on('click', function(ev) {
             items_saved_shown = !items_saved_shown;
 
             if (items_saved_shown) {
-                $(savedView).html(saved_view_outer);
+                var cur_base_url = get_ubi_cd('feed_url');
+                var cur_bookmark_id = get_ubi_cd('bookmark_id');
 
-                $(savedView).show();
-                $(savedViewClose).show();
+                if ((use_base_url != cur_base_url) || (use_bookmark_id != cur_bookmark_id)) {
+                    use_base_url = cur_base_url;
+                    use_bookmark_id = cur_bookmark_id;
+
+                    var bookmark_part = encodeURIComponent(use_bookmark_id);
+                    var session_part = encodeURIComponent(page_session_id);
+
+                    var commit_url = use_base_url + '?bookmark=' + bookmark_part + '&session=' + session_part;
+                    var saved_view_outer = '<iframe border="0" frameBorder="0" seamless="seamless" hspace="0" vspace="0" marginheight="0" marginwidth="0" width="100%" height="100%" id="ubi_cd_saved_view_iframe" src="' + window._ubi_cd_utilities['html_escape_inner'](commit_url) + '">&nbsp;</iframe>';
+
+                    $(savedView).html(saved_view_outer);
+                }
+
+                setTimeout(function() {
+                    $(savedView).show();
+                    $(savedViewClose).show();
+                }, 1);
             }
             else {
                 $(savedView).html('&nbsp;');
@@ -962,11 +985,6 @@
             return false;
         });
 
-        $(form).on('submit', function(ev) {
-            return false;
-        });
-
-        document.body.appendChild(form);
         document.body.appendChild(sessionButton);
         document.body.appendChild(savedView);
         document.body.appendChild(savedViewClose);
@@ -2155,7 +2173,5 @@
 
 })();
 // load the jQuery in any case, with noConflict(true) call
-// reset bookmark_id/session_id, etc. and button title infos (incl. saved info) on feed switches
-
 // into localization: strings with (some form of) ids, and date-time formatting
 // put css defs into the ux js file

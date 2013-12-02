@@ -4,8 +4,6 @@ import datetime, json
 from flask import request, Blueprint
 from mdb import mongo_dbs, minicd_inner
 
-# how it would be if we started to use ES instead of MongoDB?
-
 MAX_IMG_SHOW_LEN = 100
 
 ubi_take = Blueprint('ubi_take', __name__)
@@ -13,7 +11,6 @@ ubi_save = Blueprint('ubi_save', __name__)
 
 @ubi_take.route('/ubi_feeds/', methods=['GET'])
 def take_ubi():
-
     mongo = mongo_dbs[minicd_inner]
 
     feed_value = None
@@ -48,7 +45,7 @@ def take_ubi():
         if session_value:
 
             count_value = None
-            count_param = 'count'
+            count_param = 'count_only'
             if count_param in request.args:
                 count_value = str(request.args[count_param])
                 if 'true' == count_value.lower():
