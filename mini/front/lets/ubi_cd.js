@@ -250,7 +250,7 @@
 
     var start_loading = function() {
         // load the jQuery in any case (whatever window.jQuery, window.jQuery.fn.jquery are),
-        // set it local with noConflict(true) call
+        // set it local with noConflict(true) call then
         var v = '1.7.2';
         var src_default = '//ajax.googleapis.com/ajax/libs/jquery/' + v + '/jquery.min.js';
         var src_ubi = get_ubi_cd('jquery_url');
@@ -272,13 +272,11 @@
     var json2_loading = function() {
         var json2_url = get_ubi_cd('json2_url');
         if (!json2_url) {
-            init_localization();
-            return;
+            json2_url = '//cdn.jsdelivr.net/json2/0.1/json2.min.js';
         }
 
         var done = false;
         var script = document.createElement('script');
-        //script.src = '//cdn.jsdelivr.net/json2/0.1/json2.min.js;
         script.src = json2_url;
         script.onload = script.onreadystatechange = function() {
             if (!done && (!this.readyState || this.readyState == 'loaded' || this.readyState == 'complete')) {
@@ -538,11 +536,13 @@
     var cors_works = true;
     var cors_tested = false;
     var send_form = function() {
+        var random_part = window._ubi_cd_utilities['make_random_string'](40);
+
         if (!cors_tested) {
             $.ajax({
                 type: 'POST',
                 url: $('#ubi_cd_form').attr('action'),
-                data: {'ping': true}
+                data: {'ping': true, 'randomize': random_part}
             })
             .done(function() {
             })
@@ -610,6 +610,8 @@
 
         $('#ubi_cd_form').find('input[name="page_title"]').val(document.title);
         $('#ubi_cd_form').find('input[name="provider"]').val(window.location.href);
+
+        $('#ubi_cd_form').find('input[name="randomize"]').val(random_part);
 
         if (cors_works) {
             save_data = {};
@@ -707,6 +709,7 @@
             'page_type': 'general',
             'specific_id': '',
             'specific_info': '',
+            'randomize': '',
             'provider': '' + window.location.href
         };
         form_params = params;
@@ -966,8 +969,9 @@
 
                 var bookmark_part = encodeURIComponent(use_bookmark_id);
                 var session_part = encodeURIComponent(page_session_id);
+                var random_part = encodeURIComponent(window._ubi_cd_utilities['make_random_string'](40));
 
-                var commit_url = use_base_url + '?bookmark=' + bookmark_part + '&session=' + session_part;
+                var commit_url = use_base_url + '?bookmark=' + bookmark_part + '&session=' + session_part + '&randomize=' + random_part;
                 var saved_view_outer = '<iframe border="0" frameBorder="0" seamless="seamless" hspace="0" vspace="0" marginheight="0" marginwidth="0" width="100%" height="100%" id="ubi_cd_saved_view_iframe" src="' + window._ubi_cd_utilities['html_escape_inner'](commit_url) + '">&nbsp;</iframe>';
 
                 $(savedView).html(saved_view_outer);
