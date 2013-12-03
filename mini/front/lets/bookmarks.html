@@ -1,8 +1,20 @@
 <html>
 <meta http-equiv="content-type" content="text/html; charset=utf-8">
+<!--
+We use next two external Javascript libraries here:
+
+jQuery 1.7.2
+http://jquery.com/
+//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js
+
+json2.js
+http://www.json.org/js.html
+//cdn.jsdelivr.net/json2/0.1/json2.min.js
+-->
 <title>Ubiquitous Citizen Desk</title>
 <head>
-<!--script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" /></script-->
+<!--script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js" /></script-->
+<script type="text/javascript" src="jquery.min.js" /></script>
 <style type="text/css">
 .input_field {
     width: 338px;
@@ -11,7 +23,6 @@
     font-family: monospace;
 }
 </style>
-<script type="text/javascript" src="jquery.min.js" /></script>
 <script type="text/javascript" language="JavaScript">
 window.make_random_string = function (len) {
     var chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';

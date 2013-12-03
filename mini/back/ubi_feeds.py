@@ -3,6 +3,7 @@
 import datetime, json
 from flask import request, Blueprint
 from mdb import mongo_dbs, minicd_inner
+from lists import get_display
 
 MAX_IMG_SHOW_LEN = 100
 
@@ -60,7 +61,13 @@ def take_ubi():
                 if MAX_IMG_SHOW_LEN and entry['image_png'] and (MAX_IMG_SHOW_LEN < len(entry['image_png'])):
                     entry['image_png'] = entry['image_png'][:MAX_IMG_SHOW_LEN] + '...'
                 snippets.append(entry)
-            return (json.dumps(snippets), 200, {'Content-Type': 'application/json'})
+
+            # take the line below if wants to show up just the json itself
+            #return (json.dumps(snippets), 200, {'Content-Type': 'application/json'})
+
+            json_display = get_display(snippets)
+            return (json_display, 200, {'Content-Type': 'text/html'})
+
 
     got_ref = None
     ref_param = 'user'
