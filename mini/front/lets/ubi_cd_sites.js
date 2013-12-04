@@ -10,6 +10,11 @@
     }
     var $ = window._ubi_cd_runtime['local_jquery'];
 
+    if (!('api_version' in window._ubi_cd_runtime)) {
+        return;
+    }
+    var api_version = window._ubi_cd_runtime['api_version'];
+
     if (window._ubi_cd_runtime['is_sites_started']) {
         return;
     }
@@ -69,9 +74,14 @@
     };
 
     var take_one_specific = function(url, action) {
+        var use_url = url;
+        use_url += (url.indexOf('?') > -1) ? '&' : '?';
+        var api_part = encodeURIComponent(api_version);
+        use_url += 'api=' + api_part;
+
         var done = false;
         var script = document.createElement('script');
-        script.src = url;
+        script.src = use_url;
         script.onerror = script.onload = script.onreadystatechange = function(){
             if (!done && (!this.readyState || this.readyState == 'loaded' || this.readyState == 'complete')) {
                 done = true;
@@ -142,6 +152,7 @@
         page_info_elm_ids = view_spec['view_ids'];
         page_info_retake = view_spec['view_retake'];
         page_set_images = view_spec['set_images'];
+        spec_out['api_version'] = api_version;
         spec_out['get_ubi_props'] = general_ubi_props;
         spec_out['view_ids'] = page_info_elm_ids;
         spec_out['view_retake'] = page_info_retake_inner;

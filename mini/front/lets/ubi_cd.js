@@ -35,6 +35,7 @@
         alert('Attempt to load Ubiquitous Citizen Desk of a differing version.');
         return;
     }
+    window._ubi_cd_runtime['api_version'] = api_version;
 
     var ubi_cd_globals = {};
     var internalize_vars = function(part) {
@@ -288,6 +289,10 @@
     };
 
     var load_localization = function(setup_url, next_action) {
+        var api_part = encodeURIComponent(api_version);
+        var param_sep = (setup_url.indexOf('?') > -1) ? '&' : '?';
+        setup_url += param_sep + 'api=' + api_part;
+
         var done = false;
         var script = document.createElement('script');
         script.src = setup_url;
@@ -302,9 +307,16 @@
     };
 
     var load_feed = function(base_url, feed_name, next_action) {
+        var feed_url = base_url;
+        feed_url += (base_url.indexOf('?') > -1) ? '&' : '?';
+        feed_url += 'feed=' + encodeURIComponent(feed_name);
+
+        var api_part = encodeURIComponent(api_version);
+        feed_url += '&api=' + api_part;
+
         var done = false;
         var script = document.createElement('script');
-        script.src = base_url + '?feed=' + feed_name;
+        script.src = feed_url;
         script.onload = script.onreadystatechange = function() {
             if (!done && (!this.readyState || this.readyState == 'loaded' || this.readyState == 'complete')) {
                 done = true;
@@ -316,6 +328,10 @@
     };
 
     var load_other_files = function(file_to_load, next_action) {
+        var api_part = encodeURIComponent(api_version);
+        var param_sep = (file_to_load.indexOf('?') > -1) ? '&' : '?';
+        file_to_load += param_sep + 'api=' + api_part;
+
         var done = false;
         var script = document.createElement('script');
         script.src = file_to_load;
@@ -542,7 +558,7 @@
             $.ajax({
                 type: 'POST',
                 url: $('#ubi_cd_form').attr('action'),
-                data: {'ping': true, 'randomize': random_part}
+                data: {'ping': 'true', 'randomize': random_part, 'api': api_version}
             })
             .done(function() {
             })
@@ -670,6 +686,10 @@
 
     var form_params = {};
     var make_form = function(base_url) {
+        var iframe_url = base_url;
+        iframe_url += (base_url.indexOf('?') > -1) ? '&' : '?';
+        var api_part = encodeURIComponent(api_version);
+        iframe_url += 'api=' + api_part;
 
         var menu = document.createElement('div');
         menu.setAttribute('id', 'ubi_cd_txt_menu');
@@ -680,18 +700,19 @@
 
         var iframe = document.createElement('iframe');
         iframe.setAttribute('name', 'ubi_cd_frame_post');
-        iframe.setAttribute('src', base_url);
+        iframe.setAttribute('src', iframe_url);
         iframe.name = 'ubi_cd_frame_post';
         $(iframe).css('display', 'none');
 
         var form = document.createElement('form');
         form.setAttribute('id', 'ubi_cd_form');
         form.className = ubi_els_class_name;
-        form.setAttribute('method', 'post');
+        form.setAttribute('method', 'POST');
         form.setAttribute('action', base_url);
         form.setAttribute('target', 'ubi_cd_frame_post');
 
         var params = {
+            'api_version': '' + api_version,
             'text_snippet': '' + get_sel_text(),
             'page_info': 'false',
             'image_title': '',
@@ -969,9 +990,10 @@
 
                 var bookmark_part = encodeURIComponent(use_bookmark_id);
                 var session_part = encodeURIComponent(page_session_id);
+                var api_part = encodeURIComponent(api_version);
                 var random_part = encodeURIComponent(window._ubi_cd_utilities['make_random_string'](40));
 
-                var commit_url = use_base_url + '?bookmark=' + bookmark_part + '&session=' + session_part + '&randomize=' + random_part;
+                var commit_url = use_base_url + '?bookmark=' + bookmark_part + '&session=' + session_part + '&api=' + api_part + '&randomize=' + random_part;
                 var saved_view_outer = '<iframe border="0" frameBorder="0" seamless="seamless" hspace="0" vspace="0" marginheight="0" marginwidth="0" width="100%" height="100%" id="ubi_cd_saved_view_iframe" src="' + window._ubi_cd_utilities['html_escape_inner'](commit_url) + '">&nbsp;</iframe>';
 
                 $(savedView).html(saved_view_outer);
@@ -1476,7 +1498,6 @@
         } catch (exc) {}
 
     };
-
 
     var page_info_shown = false;
     var prepare_page_info = function() {
