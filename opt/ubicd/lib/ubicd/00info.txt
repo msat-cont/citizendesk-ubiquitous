@@ -1,0 +1,9 @@
+Copy here the files that compose the data server part of the UbiCD application,
+i.e. the python backend part:
+
+__init__.py
+lists.py
+mdb.py
+run.py
+ubi_feeds.py
+

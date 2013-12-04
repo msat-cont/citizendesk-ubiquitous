@@ -1,0 +1,13 @@
+Ubiquitous part of the Citizen Desk
+___________________________________
+
+Current web serving parts of the UbiCD system are prepared
+just for early developmemt purposes.
+
+It is necessary to configure a web server (e.g. Nginx) to work
+as a reverse proxy for the two -- static and dynamic -- web
+servers of the UbiCD system.
+
+The dynamic part itself uses MondoDB, Flask python framework
+and accompanying libraries.
+

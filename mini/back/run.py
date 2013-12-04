@@ -24,6 +24,9 @@ def page_not_found(error):
 
     return 'page not found', 404
 
+def run_flask(host, port):
+    app.run(host=host, port=port, debug=False)
+
 if __name__ == '__main__':
-    app.run(host='localhost', port=12345, debug=True)
+    app.run(host='localhost', port=8102, debug=True)
 

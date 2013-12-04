@@ -1,0 +1,14 @@
+Copy here the files that compose the static server part of the UbiCD application,
+i.e. the JavaScript files:
+
+ubi_cd.js
+ubi_cd_sites.js
+ubi_cd_sites_photo.js
+ubi_cd_sites_video.js
+ubi_cd_ux.js
+ubi_localization.js
+ubi_utilities.js
+
+The "css", "libs" subdirectories are for the third-party libraries.
+
+
