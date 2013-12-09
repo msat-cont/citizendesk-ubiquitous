@@ -1,3 +1,4 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
 <meta http-equiv="content-type" content="text/html; charset=utf-8">
 <!--
@@ -14,7 +15,7 @@ http://www.json.org/js.html
 <title>Ubiquitous Citizen Desk</title>
 <head>
 <!--script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js" /></script-->
-<script type="text/javascript" src="jquery.min.js" /></script>
+<script type="text/javascript" src="libs/jquery.min.js" /></script>
 <style type="text/css">
 .input_field {
     width: 338px;
@@ -147,9 +148,14 @@ window.update_link = function(silent) {
 };
 
 window.init_page = function() {
+    $('.server_address').each(function(ind, elm) {
+        $(elm).val($(elm).val().replace('localhost', document.location.host));
+    });
     $('#unique_id').val(window.make_random_string(40));
     $('#bookmark_id').val(window.make_random_string(40));
-    window.update_link();
+    setTimeout(function() {
+        window.update_link();
+    }, 0);
 };
 
 </script>
@@ -181,43 +187,43 @@ Fill in your user name:
 <br />
 <input id="backlink_text" title="backlink text" class="input_field" type="text" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="Citizen Desk"></input>
 <br />
-<input id="backlink_url" title="backlink url" class="input_field" type="text" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="http://localhost/cd/"></input>
+<input id="backlink_url" title="backlink url" class="input_field server_address" type="text" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="http://localhost/cd/"></input>
 <br />
-<input id="data_url" title="data url" class="input_field" type="text" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="http://localhost/cd/data/ubi_feeds/"></input>
+<input id="data_url" title="data url" class="input_field server_address" type="text" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="http://localhost/cd/data/ubi_feeds/"></input>
 <br />
-<input id="data_url_ssl" title="data url / ssl" class="input_field" type="text" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="https://localhost/cd/data/ubi_feeds/"></input>
+<input id="data_url_ssl" title="data url / ssl" class="input_field server_address" type="text" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="https://localhost/cd/data/ubi_feeds/"></input>
 
 <br />
-<input id="ubi_cd_url" title="Ubi-CD js url" class="input_field" type="text" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="http://localhost/cd/static/lets/ubi_cd.js"></input>
+<input id="ubi_cd_url" title="Ubi-CD js url" class="input_field server_address" type="text" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="http://localhost/cd/static/lets/ubi_cd.js"></input>
 <br />
-<input id="ubi_cd_url_ssl" title="Ubi-CD js url / ssl" class="input_field" type="text" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="https://localhost/cd/static/lets/ubi_cd.js"></input>
+<input id="ubi_cd_url_ssl" title="Ubi-CD js url / ssl" class="input_field server_address" type="text" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="https://localhost/cd/static/lets/ubi_cd.js"></input>
 <br />
-<input id="local_url" title="localization url" class="input_field" type="text" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="http://localhost/cd/static/lets/ubi_localization.js"></input>
+<input id="local_url" title="localization url" class="input_field server_address" type="text" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="http://localhost/cd/static/lets/ubi_localization.js"></input>
 <br />
-<input id="local_url_ssl" title="localization url / ssl" class="input_field" type="text" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="https://localhost/cd/static/lets/ubi_localization.js"></input>
+<input id="local_url_ssl" title="localization url / ssl" class="input_field server_address" type="text" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="https://localhost/cd/static/lets/ubi_localization.js"></input>
 
 <br />
-<input id="utils_url" title="utilities url" class="input_field" type="text" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="http://localhost/cd/static/lets/ubi_utilities.js"></input>
+<input id="utils_url" title="utilities url" class="input_field server_address" type="text" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="http://localhost/cd/static/lets/ubi_utilities.js"></input>
 <br />
-<input id="utils_url_ssl" title="utilities url / ssl" class="input_field" type="text" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="https://localhost/cd/static/lets/ubi_utilities.js"></input>
+<input id="utils_url_ssl" title="utilities url / ssl" class="input_field server_address" type="text" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="https://localhost/cd/static/lets/ubi_utilities.js"></input>
 
 <br />
-<input id="ubi_cd_sites" title="Ubi-CD sites url" class="input_field" type="text" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="http://localhost/cd/static/lets/ubi_cd_sites.js"></input>
+<input id="ubi_cd_sites" title="Ubi-CD sites url" class="input_field server_address" type="text" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="http://localhost/cd/static/lets/ubi_cd_sites.js"></input>
 <br />
-<input id="ubi_cd_sites_ssl" title="Ubi-CD sites url / ssl" class="input_field" type="text" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="https://localhost/cd/static/lets/ubi_cd_sites.js"></input>
+<input id="ubi_cd_sites_ssl" title="Ubi-CD sites url / ssl" class="input_field server_address" type="text" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="https://localhost/cd/static/lets/ubi_cd_sites.js"></input>
 <br />
-<input id="ubi_cd_ux" title="Ubi-CD look-n-feel url" class="input_field" type="text" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="http://localhost/cd/static/lets/ubi_cd_ux.js"></input>
+<input id="ubi_cd_ux" title="Ubi-CD look-n-feel url" class="input_field server_address" type="text" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="http://localhost/cd/static/lets/ubi_cd_ux.js"></input>
 <br />
-<input id="ubi_cd_ux_ssl" title="Ubi-CD look-n-feel url / ssl" class="input_field" type="text" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="https://localhost/cd/static/lets/ubi_cd_ux.js"></input>
+<input id="ubi_cd_ux_ssl" title="Ubi-CD look-n-feel url / ssl" class="input_field server_address" type="text" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="https://localhost/cd/static/lets/ubi_cd_ux.js"></input>
 
 <br />
-<input id="jquery_url" title="jQuery url" type="text" class="input_field" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="http://localhost/cd/static/lets/libs/jquery.min.js"></input>
+<input id="jquery_url" title="jQuery url" type="text" class="input_field server_address" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="http://localhost/cd/static/lets/libs/jquery.min.js"></input>
 <br />
-<input id="jquery_url_ssl" title="jQuery url / ssl" class="input_field" type="text" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="https://localhost/cd/static/lets/libs/jquery.min.js"></input>
+<input id="jquery_url_ssl" title="jQuery url / ssl" class="input_field server_address" type="text" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="https://localhost/cd/static/lets/libs/jquery.min.js"></input>
 <br />
-<input id="json2_url" title="json2 url" type="text" class="input_field" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="http://localhost/cd/static/lets/libs/json2.min.js"></input>
+<input id="json2_url" title="json2 url" type="text" class="input_field server_address" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="http://localhost/cd/static/lets/libs/json2.min.js"></input>
 <br />
-<input id="json2_url_ssl" title="json2 url / ssl" class="input_field" type="text" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="https://localhost/cd/static/lets/libs/json2.min.js"></input>
+<input id="json2_url_ssl" title="json2 url / ssl" class="input_field server_address" type="text" size="40" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="https://localhost/cd/static/lets/libs/json2.min.js"></input>
 
 <br />
 <input id="api_version" title="API version" class="input_field read_only_field" type="text" size="41" onChange="window.update_link(false);" onKeyup="window.update_link(true);" value="0.3.0" readonly="readonly"></input>

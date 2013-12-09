@@ -49,7 +49,7 @@ class RequestHandler(BaseHTTPRequestHandler):
 
         if correct:
             if '/' == parsed_path.path:
-                message = '<!DOCTYPE html><html><body>Ubiquitous Citizen Desk</body></html>'
+                message = '<!DOCTYPE html><html><body><div>Ubiquitous Citizen Desk</div><div><a href="lets/bookmarks.html">bookmarks</a></div></body></html>'
             else:
                 file_path = os.path.join(WEB_DIR, parsed_path.path[1:])
                 if not os.path.exists(file_path):
