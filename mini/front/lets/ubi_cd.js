@@ -1851,7 +1851,7 @@
             'left': '20px',
             'width': '175px',
             'display': 'none',
-            'position': 'absolute',
+            'position': 'fixed',
             'padding': '10px',
             'background-color': back_cols['context_menu'],
             'border': '1px solid #000',
@@ -1869,7 +1869,7 @@
             var search_term_title = 'search term with wildcards: ? *';
 
             var menu_html = '<input type="text" id="ubi_cd_sesrch_term_menu_new" title=" ' + search_term_title + ' " size="16"></input>';
-            menu_html += '<div id="ubi_cd_search_term_menu_label" title=" ' + search_term_title + ' ">set new search term</div>';
+            menu_html += '<div id="ubi_cd_search_term_menu_label" title=" ' + search_term_title + ' ">set / erase new search term</div>';
 
             $('#ubi_cd_search_menu').html(menu_html);
             $('#ubi_cd_search_menu').show();
