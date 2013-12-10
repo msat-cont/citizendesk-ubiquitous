@@ -39,6 +39,8 @@ window.ends_with = function(str, suffix) {
 window.update_link = function(silent) {
     $('#book').hide();
     $('#book_warn').hide();
+    window.location.hash = "#";
+    document.title = 'Ubiquitous Citizen Desk';
 
     var cur_user_name = $('#user_name').val();
     var cur_feed = $('#feed_name').val();
@@ -135,16 +137,21 @@ window.update_link = function(silent) {
     bml_link += "}";
     bml_link += "})();";
 
+    var link_text = 'Citizen ' + cur_user_name + ': ' + cur_feed;
     if (to_warn) {
-        $('#book_warn').html('Citizen ' + cur_user_name + ': ' + cur_feed + ' (w/l)');
+        link_text += ' (w/l)';
+        $('#book_warn').html(link_text);
         $('#book_warn').attr('href', bml_link);
         $('#book_warn').show();
     }
     else {
-        $('#book').html('Citizen ' + cur_user_name + ': ' + cur_feed);
+        $('#book').html(link_text);
         $('#book').attr('href', bml_link);
         $('#book').show();
     }
+
+    window.location.hash = bml_link;
+    document.title = link_text;
 };
 
 window.init_page = function() {

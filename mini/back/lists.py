@@ -28,8 +28,8 @@ http://json.bloople.net/
 http://github.com/bloopletech/json2html
 '''
 
-JS_URL = '//localhost/cd/static/lets/libs'
-CSS_URL = '//localhost/cd/static/lets/css'
+JS_URL = '../../static/lets/libs'
+CSS_URL = '../../static/lets/css'
 
 JSON_SHOW_TEMPLATE = '''
 <!DOCTYPE html>
