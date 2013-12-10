@@ -113,15 +113,15 @@ window.update_link = function(silent) {
     bml_link += "'user_name':'" + cur_user_name + "',";
     bml_link += "'feed_name':'" + cur_feed + "',";
     bml_link += "'local_language':'" + cur_lang + "',";
-    bml_link += "'feed_url':(('https:'==document.location.protocol)?'" + cur_data_url_ssl + "':'" + cur_data_url + "'),";
+    bml_link += "'feed_url':(('https:'==window.location.protocol)?'" + cur_data_url_ssl + "':'" + cur_data_url + "'),";
     bml_link += "'backlink_text':'" + cur_backlink_text + "',";
     bml_link += "'backlink_url':'" + cur_backlink_url + "',";
-    bml_link += "'localization_url':(('https:'==document.location.protocol)?'" + cur_local_url_ssl + "':'" + cur_local_url + "'),";
-    bml_link += "'utilities_url':(('https:'==document.location.protocol)?'" + cur_utils_url_ssl + "':'" + cur_utils_url + "'),";
-    bml_link += "'sites_url':(('https:'==document.location.protocol)?'" + cur_ubi_cd_sites_ssl + "':'" + cur_ubi_cd_sites + "'),";
-    bml_link += "'ux_url':(('https:'==document.location.protocol)?'" + cur_ubi_cd_ux_ssl + "':'" + cur_ubi_cd_ux + "'),";
-    bml_link += "'jquery_url':(('https:'==document.location.protocol)?'" + cur_jquery_url_ssl + "':'" + cur_jquery_url + "'),";
-    bml_link += "'json2_url':(('https:'==document.location.protocol)?'" + cur_json2_url_ssl + "':'" + cur_json2_url + "'),";
+    bml_link += "'localization_url':(('https:'==window.location.protocol)?'" + cur_local_url_ssl + "':'" + cur_local_url + "'),";
+    bml_link += "'utilities_url':(('https:'==window.location.protocol)?'" + cur_utils_url_ssl + "':'" + cur_utils_url + "'),";
+    bml_link += "'sites_url':(('https:'==window.location.protocol)?'" + cur_ubi_cd_sites_ssl + "':'" + cur_ubi_cd_sites + "'),";
+    bml_link += "'ux_url':(('https:'==window.location.protocol)?'" + cur_ubi_cd_ux_ssl + "':'" + cur_ubi_cd_ux + "'),";
+    bml_link += "'jquery_url':(('https:'==window.location.protocol)?'" + cur_jquery_url_ssl + "':'" + cur_jquery_url + "'),";
+    bml_link += "'json2_url':(('https:'==window.location.protocol)?'" + cur_json2_url_ssl + "':'" + cur_json2_url + "'),";
     bml_link += "'warn_leave':" + cur_warn;
     bml_link += "};"
     bml_link += "if((!window._ubi_cd_runtime)||(!window._ubi_cd_runtime['is_triggered'])){";
@@ -129,7 +129,7 @@ window.update_link = function(silent) {
     bml_link += "'is_triggered':'true',";
     bml_link += "};"
     bml_link += "document.body.appendChild(document.createElement('script')).src=";
-    bml_link += "(('https:'==document.location.protocol)?'" + cur_ubi_cd_url_ssl + "':'" + cur_ubi_cd_url + "');";
+    bml_link += "(('https:'==window.location.protocol)?'" + cur_ubi_cd_url_ssl + "':'" + cur_ubi_cd_url + "');";
     bml_link += "}else{";
     bml_link += "if(window._ubi_cd_runtime['is_initialized']){";
     bml_link += "window._ubi_cd_runtime['show_switch'](window._ubi_cd_spec);";
@@ -156,7 +156,7 @@ window.update_link = function(silent) {
 
 window.init_page = function() {
     $('.server_address').each(function(ind, elm) {
-        $(elm).val($(elm).val().replace('localhost', document.location.host));
+        $(elm).val($(elm).val().replace('localhost', window.location.host));
     });
     $('#unique_id').val(window.make_random_string(40));
     $('#bookmark_id').val(window.make_random_string(40));

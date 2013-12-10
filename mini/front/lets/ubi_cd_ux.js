@@ -110,7 +110,7 @@
         var to_adjust_css = false;
 
         // youtube html5 dealing has issues on fixing the flash videos
-        if (document.location.host.match(/youtube\.(?:co\.|com\.)?[\w]{2,4}$/)) {
+        if (window.location.host.match(/youtube\.(?:co\.|com\.)?[\w]{2,4}$/)) {
             to_adjust_css = true;
         }
 
@@ -140,7 +140,7 @@
 
     var is_video_update_safe = function() {
         // we have to do the flash fix even on youtube when under a webkit browser
-        if (document.location.host.match(/youtube\.(?:co\.|com\.)?[\w]{2,4}$/)) {
+        if (window.location.host.match(/youtube\.(?:co\.|com\.)?[\w]{2,4}$/)) {
             if (navigator.userAgent.toLowerCase().indexOf('webkit') > -1) {
                 return false;
             }
@@ -151,7 +151,7 @@
 
     var is_safe_to_pause = function() {
         // we have to do the flash fix even on youtube when under a webkit browser
-        if (document.location.host.match(/youtube\.(?:co\.|com\.)?[\w]{2,4}$/)) {
+        if (window.location.host.match(/youtube\.(?:co\.|com\.)?[\w]{2,4}$/)) {
             if (navigator.userAgent.toLowerCase().indexOf('webkit') > -1) {
                 return false;
             }

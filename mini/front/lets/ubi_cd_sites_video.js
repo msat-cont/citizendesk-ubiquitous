@@ -292,7 +292,7 @@
     };
 
     var youtube_video_get_id = function() {
-        if (!document.location.host.match(/youtube\.(?:co\.|com\.)?[\w]{2,4}$/)) {
+        if (!window.location.host.match(/youtube\.(?:co\.|com\.)?[\w]{2,4}$/)) {
             return null;
         }
         var query_string = window._ubi_cd_utilities['get_query_string']();
@@ -300,7 +300,7 @@
             return query_string.v;
         }
 
-        var embed_match = document.location.pathname.match(/\/embed\/([\w]+)/);
+        var embed_match = window.location.pathname.match(/\/embed\/([\w]+)/);
         if (embed_match && ('1' in embed_match)) {
             return embed_match['1'];
         }

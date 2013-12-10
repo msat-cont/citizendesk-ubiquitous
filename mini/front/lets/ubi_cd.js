@@ -2001,15 +2001,15 @@
             image_title = event_img.title;
             image_url_string = event_img.src;
 
-            var doc_host = document.location.host;
-            var doc_port = document.location.port;
-            var doc_protocol = document.location.protocol;
+            var doc_host = window.location.host;
+            var doc_port = window.location.port;
+            var doc_protocol = window.location.protocol;
 
             var tmp_href = document.createElement('a');
             tmp_href.href = image_url_string;
 
-            var host_same = (tmp_href.host == document.location.host);
-            var port_same = (tmp_href.port == document.location.port);
+            var host_same = (tmp_href.host == window.location.host);
+            var port_same = (tmp_href.port == window.location.port);
 
             var has_png = false;
 
